@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retiro de Alumno - {{ curso.nombre }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .curso-info {
+            text-align: center;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .curso-nombre {
+            font-size: 20px;
+            font-weight: 600;
+            color: #f5576c;
+            margin-bottom: 5px;
+        }
+        
+        .fecha-actual {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .messages {
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .search-box {
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+        
+        .stats {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .alumnos-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .alumno-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        
+        .alumno-card:hover {
+            border-color: #f5576c;
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.2);
+        }
+        
+        .alumno-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .info-item {
+            font-size: 14px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .info-value {
+            color: #333;
+        }
+        
+        .retiro-form {
+            display: grid;
+            gap: 10px;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+        
+        .btn-retirar {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .btn-retirar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.3);
+        }
+        
+        .btn-retirar:active {
+            transform: translateY(0);
+        }
+        
+        .no-alumnos {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 16px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #f5576c;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .back-link:hover {
+            color: #f093fb;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚪 Retiro de Alumno</h1>
+        
+        <div class="curso-info">
+            <div class="curso-nombre">📚 {{ curso.nombre|default:"Curso sin nombre" }}</div>
+            <div style="font-size: 13px; color: #666;">Prof. {{ curso.profesor.usuario.nombre|default:"Sin profesor asignado" }}</div>
+        </div>
+        
+        <div class="fecha-actual">📅 {{ fecha_hoy|date:"d/m/Y"|default:"Fecha no disponible" }}</div>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if alumnos_presentes %}
+        
+        <div class="stats">
+            👥 <strong>{{ alumnos_presentes|length }}</strong> alumno{{ alumnos_presentes|length|pluralize }} presente{{ alumnos_presentes|length|pluralize }} en este curso
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Buscar por nombre o RUT...">
+        </div>
+        
+        <div class="alumnos-list">
+            {% for alumno in alumnos_presentes %}
+            <div class="alumno-card">
+                <div class="alumno-info">
+                    <div class="info-item">
+                        <span class="info-label">👤 Alumno:</span>
+                        <span class="info-value">{{ alumno.nombre }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">🆔 RUT:</span>
+                        <span class="info-value">{{ alumno.rut }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">⏰ Hora Ingreso:</span>
+                        <span class="info-value">{{ alumno.hora_ingreso|time:"H:i" }}</span>
+                    </div>
+                    {% if alumno.apoderado %}
+                    <div class="info-item">
+                        <span class="info-label">👨‍👩‍👦 Apoderado:</span>
+                        <span class="info-value">{{ alumno.apoderado.usuario.nombre }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="info-item">
+                        <span class="badge badge-success">✓ Presente</span>
+                    </div>
+                </div>
+                
+                <form method="POST" class="retiro-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="alumno_id" value="{{ alumno.id }}">
+                    {% if alumno.apoderado %}
+                    <input type="hidden" name="apoderado_id" value="{{ alumno.apoderado.id }}">
+                    {% endif %}
+                    
+                    <textarea name="observacion" placeholder="Observaciones (opcional): Ej. Retiro por motivo médico, cita dental, etc."></textarea>
+                    
+                    <button type="submit" class="btn-retirar">🚪 Registrar Retiro</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% else %}
+        <div class="no-alumnos">
+            <p>📭 No hay alumnos presentes para retirar en este curso.</p>
+            <p style="font-size: 14px; margin-top: 10px;">Asegúrate de haber marcado la asistencia primero.</p>
+        </div>
+        {% endif %}
+        
+        <a href="{% url 'seleccionar_curso_retiro' %}" class="back-link">← Volver a selección de cursos</a>
+    </div>
+    
+    <script>
+        // Búsqueda en tiempo real
+        const searchInput = document.getElementById('searchInput');
+        const alumnoCards = document.querySelectorAll('.alumno-card');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                
+                alumnoCards.forEach(card => {
+                    const text = card.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

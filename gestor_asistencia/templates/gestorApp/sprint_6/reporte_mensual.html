@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Mensual - Director</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            .no-print { display: none; }
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+            <h2><i class="fas fa-file-invoice"></i> Reporte Mensual Ejecutivo</h2>
+            <div>
+                <button onclick="window.print()" class="btn btn-primary">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+                <a href="{% url 'seleccionar_curso' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+
+        <!-- Selector de Mes/Año -->
+        <div class="card mb-4 no-print">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="mes" class="form-label">Mes</label>
+                        <select class="form-select" id="mes" name="mes" onchange="this.form.submit()">
+                            {% for m in "123456789012"|make_list %}
+                            <option value="{{ forloop.counter }}" 
+                                {% if forloop.counter == estadisticas_generales.mes %}selected{% endif %}>
+                                {{ forloop.counter|date:"F" }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="anio" class="form-label">Año</label>
+                        <select class="form-select" id="anio" name="anio" onchange="this.form.submit()">
+                            <option value="2024" {% if estadisticas_generales.anio == 2024 %}selected{% endif %}>2024</option>
+                            <option value="2025" {% if estadisticas_generales.anio == 2025 %}selected{% endif %}>2025</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Título del Reporte -->
+        <div class="highlight-box text-center">
+            <h3 class="mb-0">Reporte Mensual de {{ estadisticas_generales.nombre_mes }} {{ estadisticas_generales.anio }}</h3>
+            <p class="mb-0">Del {{ primer_dia|date:"d/m/Y" }} al {{ ultimo_dia|date:"d/m/Y" }}</p>
+        </div>
+
+        <!-- Estadísticas Generales del Mes -->
+        <div class="row mb-4">
+            <div class="col-md-2">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-calendar-alt fa-2x text-primary mb-2"></i>
+                        <h4>{{ estadisticas_generales.dias_lectivos }}</h4>
+                        <small class="text-muted">Días Lectivos</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-users fa-2x text-info mb-2"></i>
+                        <h4>{{ estadisticas_generales.total_alumnos }}</h4>
+                        <small class="text-muted">Total Alumnos</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <h4>{{ estadisticas_generales.total_presentes }}</h4>
+                        <small class="text-muted">Total Presencias</small>
+                        <div class="progress mt-2" style="height: 8px;">
+                            <div class="progress-bar bg-success" 
+                                 style="width: {{ estadisticas_generales.porcentaje_asistencia }}%"></div>
+                        </div>
+                        <small class="text-success fw-bold">{{ estadisticas_generales.porcentaje_asistencia }}%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-times-circle fa-2x text-danger mb-2"></i>
+                        <h4>{{ estadisticas_generales.total_ausentes }}</h4>
+                        <small class="text-muted">Total Ausencias</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-file-medical fa-2x text-warning mb-2"></i>
+                        <h4>{{ certificados_mes }}</h4>
+                        <small class="text-muted">Certificados Médicos</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rendimiento por Curso -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-school"></i> Rendimiento por Curso</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Curso</th>
+                                <th>Profesor</th>
+                                <th>Alumnos</th>
+                                <th>Presentes</th>
+                                <th>Ausentes</th>
+                                <th>Retirados</th>
+                                <th>% Asistencia</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for est in estadisticas_por_curso %}
+                            <tr>
+                                <td><strong>{{ est.curso.nombre }}</strong></td>
+                                <td>{{ est.curso.profesor.usuario.nombre }}</td>
+                                <td class="text-center">{{ est.total_alumnos }}</td>
+                                <td class="text-center text-success">{{ est.total_presentes }}</td>
+                                <td class="text-center text-danger">{{ est.total_ausentes }}</td>
+                                <td class="text-center text-warning">{{ est.total_retirados }}</td>
+                                <td class="text-center">
+                                    <strong>{{ est.porcentaje_asistencia }}%</strong>
+                                </td>
+                                <td class="text-center">
+                                    {% if est.porcentaje_asistencia >= 90 %}
+                                        <span class="badge bg-success">Excelente</span>
+                                    {% elif est.porcentaje_asistencia >= 80 %}
+                                        <span class="badge bg-info">Bueno</span>
+                                    {% elif est.porcentaje_asistencia >= 70 %}
+                                        <span class="badge bg-warning">Regular</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Crítico</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top 5 Alumnos con Más Inasistencias -->
+        <div class="card mb-4">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Top 5 Alumnos con Más Inasistencias</h5>
+            </div>
+            <div class="card-body">
+                {% if alumnos_inasistencias %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="50">#</th>
+                                <th>Alumno</th>
+                                <th>Curso</th>
+                                <th>Apoderado</th>
+                                <th>Total Ausencias</th>
+                                <th>Acción Requerida</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for alumno in alumnos_inasistencias %}
+                            <tr>
+                                <td class="text-center"><strong>{{ forloop.counter }}</strong></td>
+                                <td>{{ alumno.alumno__usuario__nombre }}</td>
+                                <td><span class="badge bg-primary">{{ alumno.alumno__curso__nombre }}</span></td>
+                                <td>{{ alumno.alumno__apoderado__usuario__nombre }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-danger fs-6">{{ alumno.total_ausencias }}</span>
+                                </td>
+                                <td>
+                                    {% if alumno.total_ausencias > 10 %}
+                                        <span class="badge bg-danger">Urgente: Entrevista Apoderado</span>
+                                    {% elif alumno.total_ausencias > 5 %}
+                                        <span class="badge bg-warning text-dark">Seguimiento Requerido</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Monitorear</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center text-muted">No hay datos de inasistencias en este mes</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Resumen de Notificaciones -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-bell"></i> Resumen de Notificaciones del Mes</h5>
+            </div>
+            <div class="card-body">
+                {% if notificaciones_mes %}
+                <div class="row">
+                    {% for notif in notificaciones_mes %}
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-envelope fa-2x text-primary mb-2"></i>
+                                <h3>{{ notif.total }}</h3>
+                                <p class="mb-0"><strong>{{ notif.tipo }}</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center text-muted">No se enviaron notificaciones este mes</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Conclusiones y Recomendaciones -->
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Análisis y Recomendaciones</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-{% if estadisticas_generales.porcentaje_asistencia >= 90 %}success{% elif estadisticas_generales.porcentaje_asistencia >= 80 %}info{% elif estadisticas_generales.porcentaje_asistencia >= 70 %}warning{% else %}danger{% endif %}">
+                    <h5>Evaluación General del Mes</h5>
+                    <p class="mb-0">
+                        {% if estadisticas_generales.porcentaje_asistencia >= 90 %}
+                            ✅ Excelente nivel de asistencia. Mantener las estrategias actuales.
+                        {% elif estadisticas_generales.porcentaje_asistencia >= 80 %}
+                            ℹ️ Buen nivel de asistencia. Se recomienda seguimiento a casos específicos.
+                        {% elif estadisticas_generales.porcentaje_asistencia >= 70 %}
+                            ⚠️ Nivel de asistencia regular. Requiere implementar medidas correctivas.
+                        {% else %}
+                            🚨 Nivel de asistencia crítico. Urgente: Plan de acción inmediato.
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <h6>Recomendaciones:</h6>
+                <ul>
+                    <li>Realizar seguimiento individual a los alumnos del Top 5 de inasistencias</li>
+                    <li>Agendar entrevistas con apoderados de alumnos con más de 10 ausencias</li>
+                    <li>Revisar y validar certificados médicos pendientes</li>
+                    <li>Reforzar canales de comunicación con apoderados</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center text-muted mb-4">
+            <hr>
+            <p class="mb-0">
+                <strong>Reporte Generado:</strong> {{ primer_dia|date:"d/m/Y" }} | 
+                <strong>Periodo:</strong> {{ estadisticas_generales.nombre_mes }} {{ estadisticas_generales.anio }} | 
+                <strong>Días Lectivos:</strong> {{ estadisticas_generales.dias_lectivos }}
+            </p>
+            <small>Sistema de Gestión de Asistencia - Uso Exclusivo Dirección</small>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

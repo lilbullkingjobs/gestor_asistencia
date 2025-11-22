@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas de Inasistencia</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 5px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .alert-info {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            border-left: 5px solid #dc3545;
+        }
+        
+        .alert-info h2 {
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-info p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .action-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .action-info p {
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+        
+        .btn-enviar-alertas {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-enviar-alertas:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+        
+        .alumnos-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .alumno-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid #ffc107;
+        }
+        
+        .alumno-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+        
+        .alumno-header h3 {
+            color: #333;
+            font-size: 1.2rem;
+        }
+        
+        .badge-danger {
+            background: #dc3545;
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .alumno-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .detail-item {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .detail-item strong {
+            color: #333;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 1rem;
+            border-radius: 5px;
+            color: #856404;
+        }
+        
+        .warning-box strong {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .empty-state h3 {
+            color: #28a745;
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-state p {
+            color: #666;
+        }
+        
+        .messages {
+            margin-bottom: 1rem;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>⚠️ Alertas de Inasistencia Prolongada</h1>
+            <a href="{% url 'seleccionar_curso' %}" class="back-btn">← Volver</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="alert-info">
+            <h2>🔍 Sistema de Detección de Inasistencia</h2>
+            <p>
+                Este sistema detecta automáticamente a los alumnos que han estado ausentes por 
+                <strong>{{ umbral_dias }} o más días consecutivos</strong>. Se enviará una notificación 
+                automática a los apoderados para que justifiquen la inasistencia.
+            </p>
+        </div>
+        
+        {% if alumnos_problema %}
+        <div class="action-card">
+            <div class="action-info">
+                <p><strong>{{ alumnos_problema|length }} alumno{{ alumnos_problema|length|pluralize }} detectado{{ alumnos_problema|length|pluralize }}</strong></p>
+                <p>Se enviará una notificación a cada apoderado</p>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn-enviar-alertas">
+                    📧 Enviar Todas las Alertas
+                </button>
+            </form>
+        </div>
+        
+        <div class="alumnos-grid">
+            {% for item in alumnos_problema %}
+            <div class="alumno-card">
+                <div class="alumno-header">
+                    <h3>{{ item.alumno.usuario.nombre }}</h3>
+                    <span class="badge-danger">
+                        {{ item.dias_ausente }} día{{ item.dias_ausente|pluralize }} ausente
+                    </span>
+                </div>
+                
+                <div class="alumno-details">
+                    <div class="detail-item">
+                        <strong>RUT</strong>
+                        {{ item.alumno.rut }}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Curso</strong>
+                        {{ item.alumno.curso.nombre }}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Apoderado</strong>
+                        {{ item.alumno.apoderado.usuario.nombre }}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Última Asistencia</strong>
+                        {{ item.ultima_asistencia.fecha|date:"d/m/Y" }}
+                    </div>
+                </div>
+                
+                <div class="warning-box">
+                    <strong>⚠️ Acción Requerida</strong>
+                    Se requiere justificación médica o contacto con el apoderado para regularizar la situación.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">✅</div>
+            <h3>¡Excelente!</h3>
+            <p>No hay alumnos con inasistencia prolongada en este momento.</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                El sistema está monitoreando activamente las asistencias.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,69 @@
+✅ Director creado: Carlos Méndez
+   📧 Email: director@colegio.cl | 🔑 Password: 1234
+👨‍🏫 Creando Profesores...
+   ✅ María González
+   ✅ Pedro Rodríguez
+   ✅ Ana Martínez
+   ✅ Luis Torres
+✅ 4 profesores creados
+   📧 Email: [nombre]@colegio.cl | 🔑 Password: 1234
+👮 Creando Inspectores...
+   ✅ Roberto Sánchez - Turno Mañana
+   ✅ Carmen López - Turno Tarde
+✅ 2 inspectores creados
+   📧 Email: [nombre]@colegio.cl | 🔑 Password: 1234
+📚 Creando Cursos...
+   ✅ 1° Medio - Profesor: María González
+   ✅ 2° Medio - Profesor: Pedro Rodríguez
+   ✅ 3° Medio - Profesor: Ana Martínez
+   ✅ 4° Medio - Profesor: Luis Torres
+✅ 4 cursos creados
+👨‍👩‍👧‍👦 Creando Apoderados y Alumnos...
+   ✅ Juan Pérez - 1° Medio
+   ✅ Sofía Ramírez - 1° Medio
+   ✅ Diego Castro - 1° Medio
+   ✅ Camila Torres - 1° Medio
+   ✅ Valentina Silva - 2° Medio
+   ✅ Matías Fernández - 2° Medio
+   ✅ Isidora Morales - 2° Medio
+   ✅ Sebastián Vega - 2° Medio
+   ✅ Benjamín Vargas - 3° Medio
+   ✅ Martina Rojas - 3° Medio
+   ✅ Lucas Herrera - 3° Medio
+   ✅ Emma Contreras - 4° Medio
+   ✅ Agustín Soto - 4° Medio
+   ✅ Florencia Muñoz - 4° Medio
+✅ 14 alumnos creados
+✅ 14 apoderados creados
+   📧 Email: [nombre]@apoderado.cl | 🔑 Password: 1234
+📝 Creando registros de asistencia...
+✅ 70 registros de asistencia creados
+📬 Creando notificaciones...
+✅ 5 notificaciones creadas
+
+============================================================
+✅ BASE DE DATOS POBLADA EXITOSAMENTE
+============================================================
+
+📊 RESUMEN DE DATOS CREADOS:
+   👔 Directores: 1
+   👨‍🏫 Profesores: 4
+   👮 Inspectores: 2
+   👨‍👩‍👧‍👦 Apoderados: 14
+   👦 Alumnos: 14
+   📚 Cursos: 4
+   📝 Asistencias: 70
+   📬 Notificaciones: 5
+
+🔑 CREDENCIALES DE ACCESO:
+   Director:
+   📧 director@colegio.cl | 🔑 1234
+
+   Inspector:
+   📧 roberto.sanchez@colegio.cl | 🔑 1234
+
+   Profesor:
+   📧 maria.gonzalez@colegio.cl | 🔑 1234
+
+   Apoderado:
+   📧 maria.perez@apoderado.cl | 🔑 1234

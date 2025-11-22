@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% extends 'gestorApp/base.html' %}
+{% block title %}Seleccionar Curso - Asistencia{% endblock %}
+{% block content %}
+
+<div class="max-w-6xl mx-auto">
+  <!-- Encabezado -->
+  <header class="mb-8">
+    <h1 class="text-4xl font-black text-slate-900 dark:text-white mb-2">
+      Marcaje de Asistencia
+    </h1>
+    <p class="text-slate-500 dark:text-slate-400 text-lg">
+      Selecciona un curso para registrar la asistencia de sus alumnos.
+    </p>
+  </header>
+
+  <!-- Mensajes -->
+  {% if messages %}
+    {% for message in messages %}
+      {% if message.tags == 'success' %}
+        <div class="mb-6 p-4 rounded-lg border border-green-400 bg-green-100 text-green-800">
+          {{ message }}
+        </div>
+      {% else %}
+        <div class="mb-6 p-4 rounded-lg border border-red-400 bg-red-100 text-red-800">
+          {{ message }}
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  <!-- Lista de cursos -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for curso in cursos %}
+      <a href="{% url 'marcar_asistencia' curso.id %}"
+         class="group block bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700
+                rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300
+                hover:-translate-y-1 cursor-pointer">
+        <div class="flex flex-col justify-between h-full">
+          <div>
+            <h2 class="text-xl font-bold text-[#0A2463] dark:text-[#3E92CC] mb-2 group-hover:text-[#3E92CC] transition">
+              {{ curso.nombre }}
+            </h2>
+            <p class="text-slate-600 dark:text-slate-400 mb-2">
+              Profesor: 
+              {% if curso.profesor and curso.profesor.usuario %}
+                <span class="font-medium">{{ curso.profesor.usuario.nombre }}</span>
+              {% else %}
+                <span class="italic text-slate-400">Sin profesor asignado</span>
+              {% endif %}
+            </p>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between">
+            <p class="text-sm text-slate-500 dark:text-slate-400">
+              {{ curso.alumno_set.count }} alumnos
+            </p>
+            <span class="text-[#0A2463] dark:text-[#3E92CC] font-semibold text-sm group-hover:underline">
+              Ver asistencia →
+            </span>
+          </div>
+        </div>
+      </a>
+    {% empty %}
+      <div class="col-span-full text-center text-slate-500 dark:text-slate-400 py-12">
+        No hay cursos registrados.
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
+
+</body>
+</html>

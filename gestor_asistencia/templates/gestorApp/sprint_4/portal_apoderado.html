@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Apoderado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 5px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .welcome-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .welcome-card h2 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .welcome-card p {
+            color: #666;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .alumnos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .alumno-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .alumno-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        
+        .alumno-card h3 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .alumno-info {
+            color: #666;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .btn-ver-historial {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .btn-ver-historial:hover {
+            transform: translateY(-2px);
+        }
+        
+        .notificaciones-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .notificacion {
+            padding: 1rem;
+            border-left: 4px solid #667eea;
+            background: #f8f9fa;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+        }
+        
+        .notificacion.atraso {
+            border-left-color: #ffc107;
+        }
+        
+        .notificacion.inasistencia {
+            border-left-color: #dc3545;
+        }
+        
+        .notificacion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .notificacion-tipo {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .notificacion-fecha {
+            font-size: 0.85rem;
+            color: #999;
+        }
+        
+        .notificacion-mensaje {
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🎓 Portal del Apoderado</h1>
+            <a href="{% url 'logout' %}" class="logout-btn">Cerrar Sesión</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="welcome-card">
+            <h2>¡Bienvenido, {{ apoderado.usuario.nombre }}!</h2>
+            <p>Aquí puedes revisar la asistencia y recibir notificaciones de tus pupilos.</p>
+        </div>
+        
+        <h2 class="section-title">👥 Mis Pupilos</h2>
+        
+        {% if alumnos %}
+        <div class="alumnos-grid">
+            {% for alumno in alumnos %}
+            <div class="alumno-card">
+                <h3>{{ alumno.usuario.nombre }}</h3>
+                <div class="alumno-info">
+                    <strong>RUT:</strong> {{ alumno.rut }}
+                </div>
+                <div class="alumno-info">
+                    <strong>Curso:</strong> {{ alumno.curso.nombre }}
+                </div>
+                <div class="alumno-info">
+                    <strong>Profesor:</strong> {{ alumno.curso.profesor.usuario.nombre }}
+                </div>
+                <a href="{% url 'historial_asistencia' alumno.id %}" class="btn-ver-historial">
+                    📊 Ver Historial de Asistencia
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">👨‍👩‍👧</div>
+            <p>No hay alumnos registrados bajo tu tutela.</p>
+        </div>
+        {% endif %}
+        
+        <h2 class="section-title">🔔 Notificaciones Recientes</h2>
+        
+        <div class="notificaciones-section">
+            {% if notificaciones %}
+                {% for notificacion in notificaciones %}
+                <div class="notificacion {% if notificacion.tipo == 'Atraso' %}atraso{% elif notificacion.tipo == 'Inasistencia Prolongada' %}inasistencia{% endif %}">
+                    <div class="notificacion-header">
+                        <span class="notificacion-tipo">
+                            {% if notificacion.tipo == 'Atraso' %}
+                                ⏰ Atraso
+                            {% elif notificacion.tipo == 'Inasistencia Prolongada' %}
+                                ⚠️ Inasistencia Prolongada
+                            {% else %}
+                                📢 {{ notificacion.tipo }}
+                            {% endif %}
+                        </span>
+                        <span class="notificacion-fecha">
+                            {{ notificacion.fecha_envio|date:"d/m/Y H:i" }}
+                        </span>
+                    </div>
+                    <div class="notificacion-mensaje">
+                        <strong>{{ notificacion.alumno.usuario.nombre }}:</strong> {{ notificacion.mensaje }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">✉️</div>
+                <p>No hay notificaciones recientes.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

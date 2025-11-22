@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia</title>
+</head>
+<body>
+    {% extends 'gestorApp/base.html' %}
+{% block title %}Marcaje de Asistencia{% endblock %}
+{% block content %}
+
+<div class="max-w-6xl mx-auto">
+  <!-- Título -->
+  <header class="mb-8">
+    <h1 class="text-4xl font-black leading-tight text-slate-900 dark:text-white mb-2">Marcaje de Asistencia</h1>
+    <p class="text-slate-500 dark:text-slate-400 text-lg">Selecciona el estado de asistencia de cada alumno y guarda los registros.</p>
+  </header>
+
+  <!-- Formulario -->
+  <form method="POST" class="bg-white dark:bg-slate-900/70 rounded-xl shadow-lg p-8">
+    {% csrf_token %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="bg-[#0A2463] text-white text-left">
+            <th class="p-4 rounded-tl-lg">Alumno</th>
+            <th class="p-4 text-center">Presente</th>
+            <th class="p-4 text-center">Ausente</th>
+            <th class="p-4 text-center rounded-tr-lg">Retirado</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+            
+          {% for alumno in alumnos %}
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+            <td class="p-4 font-medium text-slate-900 dark:text-slate-200">{{ alumno.usuario.nombre }}</td>
+            <td class="text-center p-2">
+              <label class="inline-flex items-center justify-center cursor-pointer">
+                <input type="radio" name="estado_{{ alumno.id }}" value="Presente" class="hidden peer">
+                <span class="px-4 py-2 rounded-lg border border-slate-300 peer-checked:bg-green-500 peer-checked:text-white transition">✔</span>
+              </label>
+            </td>
+            <td class="text-center p-2">
+              <label class="inline-flex items-center justify-center cursor-pointer">
+                <input type="radio" name="estado_{{ alumno.id }}" value="Ausente" class="hidden peer">
+                <span class="px-4 py-2 rounded-lg border border-slate-300 peer-checked:bg-red-500 peer-checked:text-white transition">✖</span>
+              </label>
+            </td>
+            <td class="text-center p-2">
+              <label class="inline-flex items-center justify-center cursor-pointer">
+                <input type="radio" name="estado_{{ alumno.id }}" value="Retirado" class="hidden peer">
+                <span class="px-4 py-2 rounded-lg border border-slate-300 peer-checked:bg-yellow-500 peer-checked:text-white transition">⏳</span>
+              </label>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-center py-6 text-slate-500 dark:text-slate-400">
+              No hay alumnos registrados.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Botón de envío -->
+    <div class="mt-8 flex justify-end">
+      <button type="submit"
+        class="bg-[#0A2463] text-white font-bold py-3 px-8 rounded-lg hover:bg-[#3E92CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3E92CC] transition-colors">
+        Guardar Asistencia
+      </button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
+
+</body>
+</html>
+
+<!-- Agregar al final del archivo marcar_asistencia.html existente -->
+
+<script>
+// Función para enviar notificación de atraso
+function notificarAtraso(alumnoId, alumnoNombre) {
+    if (confirm(`¿Enviar notificación de atraso al apoderado de ${alumnoNombre}?`)) {
+        fetch('/notificar-atraso/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `alumno_id=${alumnoId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Notificación enviada correctamente');
+            } else {
+                alert('❌ Error al enviar notificación: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('❌ Error al enviar notificación');
+        });
+    }
+}
+</script>
+
+<!-- Ejemplo de botón para agregar en cada fila de alumno -->
+<!-- 
+<button type="button" onclick="notificarAtraso({{ alumno.id }}, '{{ alumno.usuario.nombre }}')" 
+        class="btn-notificar">
+    🔔 Notificar Atraso
+</button>
+-->
+
+<style>
+.btn-notificar {
+    background: #ffc107;
+    color: #333;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-notificar:hover {
+    background: #ffb300;
+    transform: translateY(-2px);
+}
+</style>

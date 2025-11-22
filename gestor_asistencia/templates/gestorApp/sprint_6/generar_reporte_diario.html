@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Diario de Asistencia</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            .no-print { display: none; }
+            .card { border: 1px solid #ddd !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <!-- Header (no imprimir botones) -->
+        <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+            <h2><i class="fas fa-file-alt"></i> Reporte Diario de Asistencia</h2>
+            <div>
+                <button onclick="window.print()" class="btn btn-primary">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+                <a href="{% url 'seleccionar_curso' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+
+        <!-- Selector de Fecha (no imprimir) -->
+        <div class="card mb-4 no-print">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="fecha" class="form-label">
+                            <i class="fas fa-calendar"></i> Seleccionar Fecha
+                        </label>
+                        <input type="date" class="form-control" id="fecha" name="fecha" 
+                               value="{{ fecha_reporte|date:'Y-m-d' }}" onchange="this.form.submit()">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Encabezado del Reporte -->
+        <div class="text-center mb-4">
+            <h3>Reporte de Asistencia</h3>
+            <h5>{{ fecha_reporte|date:"l, d \d\e F \d\e Y" }}</h5>
+        </div>
+
+        <!-- Estadísticas Generales -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-users fa-3x text-primary mb-2"></i>
+                        <h2>{{ estadisticas_generales.total_alumnos }}</h2>
+                        <p class="text-muted mb-0">Total Alumnos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-check-circle fa-3x text-success mb-2"></i>
+                        <h2>{{ estadisticas_generales.presentes }}</h2>
+                        <p class="text-muted mb-0">Presentes</p>
+                        <small class="text-success">
+                            {{ estadisticas_generales.porcentaje_asistencia }}% de asistencia
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-times-circle fa-3x text-danger mb-2"></i>
+                        <h2>{{ estadisticas_generales.ausentes }}</h2>
+                        <p class="text-muted mb-0">Ausentes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-sign-out-alt fa-3x text-warning mb-2"></i>
+                        <h2>{{ estadisticas_generales.retirados }}</h2>
+                        <p class="text-muted mb-0">Retirados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas por Curso -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Estadísticas por Curso</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Curso</th>
+                                <th>Profesor</th>
+                                <th>Total Alumnos</th>
+                                <th>Presentes</th>
+                                <th>Ausentes</th>
+                                <th>Retirados</th>
+                                <th>% Asistencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for est in estadisticas_por_curso %}
+                            <tr>
+                                <td><strong>{{ est.curso.nombre }}</strong></td>
+                                <td>{{ est.curso.profesor.usuario.nombre }}</td>
+                                <td class="text-center">{{ est.total_alumnos }}</td>
+                                <td class="text-center text-success"><strong>{{ est.presentes }}</strong></td>
+                                <td class="text-center text-danger">{{ est.ausentes }}</td>
+                                <td class="text-center text-warning">{{ est.retirados }}</td>
+                                <td class="text-center">
+                                    <span class="badge {% if est.porcentaje_asistencia >= 90 %}bg-success{% elif est.porcentaje_asistencia >= 75 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ est.porcentaje_asistencia }}%
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dos columnas: Ausentes y Retirados -->
+        <div class="row mb-4">
+            <!-- Alumnos Ausentes -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-times"></i> Alumnos Ausentes ({{ alumnos_ausentes.count }})
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if alumnos_ausentes %}
+                        <ul class="list-group list-group-flush">
+                            {% for asistencia in alumnos_ausentes %}
+                            <li class="list-group-item">
+                                <strong>{{ asistencia.alumno.usuario.nombre }}</strong><br>
+                                <small class="text-muted">
+                                    {{ asistencia.alumno.curso.nombre }} | 
+                                    Apoderado: {{ asistencia.alumno.apoderado.usuario.nombre }}
+                                </small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-center text-muted">No hay alumnos ausentes</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alumnos Retirados -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-minus"></i> Alumnos Retirados ({{ alumnos_retirados.count }})
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if alumnos_retirados %}
+                        <ul class="list-group list-group-flush">
+                            {% for asistencia in alumnos_retirados %}
+                            <li class="list-group-item">
+                                <strong>{{ asistencia.alumno.usuario.nombre }}</strong><br>
+                                <small class="text-muted">
+                                    {{ asistencia.alumno.curso.nombre }} | 
+                                    Hora salida: {{ asistencia.hora_salida|time:"H:i" }}
+                                    {% if asistencia.autorizado_por %}
+                                    | Autorizado por: {{ asistencia.autorizado_por.usuario.nombre }}
+                                    {% endif %}
+                                </small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-center text-muted">No hay alumnos retirados</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Eventos Relevantes del Día -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-clipboard-list"></i> Eventos Relevantes</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-file-medical"></i> Certificados Médicos: 
+                            <span class="badge bg-secondary">{{ certificados_hoy.count }}</span>
+                        </h6>
+                        {% if certificados_hoy %}
+                        <ul>
+                            {% for cert in certificados_hoy %}
+                            <li>{{ cert.alumno.usuario.nombre }} - {{ cert.motivo|truncatewords:8 }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-bell"></i> Notificaciones Enviadas: 
+                            <span class="badge bg-secondary">{{ total_notificaciones }}</span>
+                        </h6>
+                        {% if notificaciones_hoy %}
+                        <ul>
+                            {% for notif in notificaciones_hoy %}
+                            <li>{{ notif.tipo }}: {{ notif.alumno.usuario.nombre }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer del Reporte -->
+        <div class="text-center text-muted mb-4">
+            <small>
+                Reporte generado el {{ fecha_reporte|date:"d/m/Y" }} | 
+                Sistema de Gestión de Asistencia
+            </small>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificación de Inasistencia</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-10 mx-auto">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-bell"></i> Notificar Inasistencias</h2>
+                    <a href="{% url 'seleccionar_curso' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                </div>
+
+                <!-- Mensajes -->
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Información del día -->
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>Fecha:</strong> {{ fecha_hoy|date:"d/m/Y" }} | 
+                    <strong>Total de ausentes:</strong> {{ total_ausentes }}
+                </div>
+
+                <!-- Formulario -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Alumnos Ausentes Hoy</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if alumnos_ausentes %}
+                        <form method="POST">
+                            {% csrf_token %}
+                            
+                            <!-- Mensaje Personalizado -->
+                            <div class="mb-4">
+                                <label for="mensaje" class="form-label">
+                                    <i class="fas fa-comment"></i> Mensaje Personalizado (Opcional)
+                                </label>
+                                <textarea class="form-control" id="mensaje" name="mensaje" rows="3" 
+                                    placeholder="Si lo deja vacío, se enviará un mensaje predeterminado"></textarea>
+                            </div>
+
+                            <!-- Botones de selección -->
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="seleccionarTodos()">
+                                    <i class="fas fa-check-double"></i> Seleccionar Todos
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deseleccionarTodos()">
+                                    <i class="fas fa-times"></i> Deseleccionar Todos
+                                </button>
+                            </div>
+
+                            <!-- Tabla de Alumnos -->
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th width="50">
+                                                <input type="checkbox" id="checkboxTodos" onclick="toggleTodos(this)">
+                                            </th>
+                                            <th>Alumno</th>
+                                            <th>RUT</th>
+                                            <th>Curso</th>
+                                            <th>Apoderado</th>
+                                            <th>Contacto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for asistencia in alumnos_ausentes %}
+                                        <tr>
+                                            <td class="text-center">
+                                                <input type="checkbox" class="alumno-checkbox" 
+                                                       name="alumno_ids" value="{{ asistencia.alumno.id }}">
+                                            </td>
+                                            <td>
+                                                <strong>{{ asistencia.alumno.usuario.nombre }}</strong>
+                                            </td>
+                                            <td>{{ asistencia.alumno.rut }}</td>
+                                            <td>
+                                                <span class="badge bg-primary">{{ asistencia.alumno.curso.nombre }}</span>
+                                            </td>
+                                            <td>{{ asistencia.alumno.apoderado.usuario.nombre }}</td>
+                                            <td>
+                                                <small>
+                                                    <i class="fas fa-envelope"></i> {{ asistencia.alumno.apoderado.usuario.correo }}<br>
+                                                    <i class="fas fa-phone"></i> {{ asistencia.alumno.apoderado.telefono }}
+                                                </small>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Botón de Envío -->
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-warning btn-lg" 
+                                        onclick="return confirm('¿Enviar notificaciones a los apoderados seleccionados?')">
+                                    <i class="fas fa-paper-plane"></i> Enviar Notificaciones
+                                </button>
+                            </div>
+                        </form>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h5>¡No hay alumnos ausentes hoy!</h5>
+                            <p class="text-muted">Todos los alumnos están presentes o fueron retirados.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Seleccionar/Deseleccionar todos
+        function toggleTodos(checkbox) {
+            const checkboxes = document.querySelectorAll('.alumno-checkbox');
+            checkboxes.forEach(cb => cb.checked = checkbox.checked);
+        }
+
+        function seleccionarTodos() {
+            const checkboxes = document.querySelectorAll('.alumno-checkbox');
+            checkboxes.forEach(cb => cb.checked = true);
+            document.getElementById('checkboxTodos').checked = true;
+        }
+
+        function deseleccionarTodos() {
+            const checkboxes = document.querySelectorAll('.alumno-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
+            document.getElementById('checkboxTodos').checked = false;
+        }
+
+        // Validar que al menos uno esté seleccionado
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const checkboxes = document.querySelectorAll('.alumno-checkbox:checked');
+            if (checkboxes.length === 0) {
+                e.preventDefault();
+                alert('Debe seleccionar al menos un alumno para enviar notificaciones');
+            }
+        });
+    </script>
+</body>
+</html>
