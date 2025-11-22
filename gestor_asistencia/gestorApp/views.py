@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.db.models import Q , Count
 from django.http import JsonResponse
 from datetime import datetime, timedelta
-from .models import Alumno, Apoderado, Curso, Usuario, Asistencia, Inspector, Director, Profesor, Notificacion
+from .models import Alumno, Apoderado, Curso, Usuario, Asistencia, Inspector, Director, Profesor, Notificacion, CertificadoMedico
 from django.contrib.auth.hashers import make_password, check_password
 from django.core.files.storage import FileSystemStorage
 from django.db.models import Count, Q
@@ -17,7 +17,7 @@ def home(request):
         if usuario_rol == 'director':
             return redirect('panel_control_rol')
         elif usuario_rol == 'inspector':
-            return redirect('seleccionar_curso')
+            return redirect('panel_control_rol')  
         elif usuario_rol == 'profesor':
             return redirect('panel_control_rol')
         elif usuario_rol == 'apoderado':
@@ -136,50 +136,145 @@ def marcar_asistencia(request, curso_id):
 
     # Obtener la fecha actual
     fecha_hoy = timezone.now().date()
+    
+    # Verificar si la asistencia ya fue marcada y bloqueada
+    asistencias_hoy = Asistencia.objects.filter(alumno__curso=curso, fecha=fecha_hoy)
+    asistencia_bloqueada = asistencias_hoy.exists() and asistencias_hoy.first().fecha_hora_marcaje is not None
+    
+    # Obtener usuario actual
+    usuario_id = request.session.get('usuario_id')
+    usuario_actual = None
+    es_inspector = False
+    es_profesor = False
+    
+    if usuario_id:
+        try:
+            usuario_actual = Usuario.objects.get(id=usuario_id)
+            es_inspector = usuario_actual.rol == 'inspector'
+            es_profesor = usuario_actual.rol == 'profesor'
+        except Usuario.DoesNotExist:
+            pass
 
     if request.method == 'POST':
-        registros_guardados = 0
-
-        for alumno in alumnos:
-            estado = request.POST.get(f"estado_{alumno.id}")
-            if estado:
-                asistencia, created = Asistencia.objects.get_or_create(
-                    alumno=alumno,
-                    fecha=fecha_hoy,
-                    defaults={
-                        'estado': estado,
-                        'hora_ingreso': timezone.now().time() if estado == 'Presente' else None,
-                        'hora_salida': timezone.now().time() if estado == 'Retirado' else None,
-                    }
+        accion = request.POST.get('accion')
+        
+        # ✅ DESBLOQUEO: Solo inspectores pueden desbloquear
+        if accion == 'desbloquear':
+            if es_inspector:
+                asistencias_hoy.update(fecha_hora_marcaje=None, marcado_por=None)
+                messages.success(request, "🔓 Asistencia desbloqueada. Ahora puedes modificarla.")
+                
+                # Registrar en auditoría
+                registrar_auditoria(
+                    usuario=usuario_actual,
+                    accion='Desbloqueo de Asistencia',
+                    detalle=f"Desbloqueó asistencia del curso {curso.nombre} - Fecha: {fecha_hoy}",
+                    tabla_afectada='Asistencia',
+                    registro_id=curso.id
                 )
+                
+                return redirect('marcar_asistencia', curso_id=curso.id)
+            else:
+                messages.error(request, "❌ Solo los inspectores pueden desbloquear la asistencia.")
+                return redirect('marcar_asistencia', curso_id=curso.id)
+        
+        # ✅ BLOQUEO: Profesores e inspectores pueden bloquear (guardar asistencia)
+        if accion == 'bloquear':
+            # Verificar permisos
+            if not (es_profesor or es_inspector):
+                messages.error(request, "❌ No tienes permiso para marcar asistencia.")
+                return redirect('marcar_asistencia', curso_id=curso.id)
+            
+            # Verificar si ya está bloqueada
+            if asistencia_bloqueada and es_profesor:
+                messages.error(request, "❌ La asistencia ya fue marcada y bloqueada. Solo un inspector puede modificarla.")
+                return redirect('marcar_asistencia', curso_id=curso.id)
+            
+            registros_guardados = 0
+            hora_actual = timezone.now().time()
+            fecha_hora_actual = timezone.now()
 
-                # Si ya existía, actualizamos solo si cambió el estado
-                if not created:
-                    asistencia.estado = estado
-                    if estado == 'Presente':
-                        asistencia.hora_ingreso = timezone.now().time()
-                    elif estado == 'Retirado':
-                        asistencia.hora_salida = timezone.now().time()
+            for alumno in alumnos:
+                estado = request.POST.get(f"estado_{alumno.id}")
+                if estado:
+                    # update_or_create previene duplicados automáticamente
+                    asistencia, created = Asistencia.objects.update_or_create(
+                        alumno=alumno,
+                        fecha=fecha_hoy,
+                        defaults={
+                            'estado': estado,
+                            'fecha_hora_marcaje': fecha_hora_actual,
+                            'marcado_por': usuario_actual,
+                        }
+                    )
+                    
+                    # Actualizar horas según el estado
+                    if estado == 'Presente' and not asistencia.hora_ingreso:
+                        asistencia.hora_ingreso = hora_actual
+                    
+                    if estado == 'Retirado':
+                        if not asistencia.hora_salida:
+                            asistencia.hora_salida = hora_actual
+                        if not asistencia.hora_ingreso:
+                            asistencia.hora_ingreso = hora_actual
+                    
                     asistencia.save()
+                    registros_guardados += 1
 
-                registros_guardados += 1
+            if registros_guardados > 0:
+                # Registrar en auditoría
+                registrar_auditoria(
+                    usuario=usuario_actual,
+                    accion='Marcaje de Asistencia',
+                    detalle=f"Marcó asistencia del curso {curso.nombre} - {registros_guardados} alumnos - Fecha: {fecha_hoy}",
+                    tabla_afectada='Asistencia',
+                    registro_id=curso.id
+                )
+                
+                tipo_usuario = "profesor" if es_profesor else "inspector"
+                messages.success(
+                    request, 
+                    f"✅ Asistencia registrada para {curso.nombre} a las {fecha_hora_actual.strftime('%H:%M:%S')} "
+                    f"por {usuario_actual.nombre} ({tipo_usuario}). "
+                    f"({registros_guardados} alumnos). La asistencia quedó bloqueada."
+                )
+            else:
+                messages.warning(request, "⚠️ No se registraron cambios en la asistencia.")
 
-        if registros_guardados > 0:
-            messages.success(request, f"Asistencia registrada para {curso.nombre} ({registros_guardados} alumnos).")
-        else:
-            messages.warning(request, "No se registraron cambios en la asistencia.")
-
-        return redirect('marcar_asistencia', curso_id=curso.id)
+            return redirect('marcar_asistencia', curso_id=curso.id)
 
     # En GET mostramos los alumnos del curso
-    asistencias_hoy = Asistencia.objects.filter(alumno__curso=curso, fecha=fecha_hoy)
     estado_actual = {a.alumno.id: a.estado for a in asistencias_hoy}
+    
+    # Información de marcaje para mostrar
+    info_marcaje = None
+    if asistencias_hoy.exists():
+        primera_asistencia = asistencias_hoy.first()
+        if primera_asistencia.fecha_hora_marcaje:
+            info_marcaje = {
+                'fecha_hora': primera_asistencia.fecha_hora_marcaje,
+                'marcado_por': primera_asistencia.marcado_por.nombre if primera_asistencia.marcado_por else 'Desconocido',
+                'rol_marcador': primera_asistencia.marcado_por.rol if primera_asistencia.marcado_por else 'Desconocido'
+            }
+
+    # ✅ Determinar permisos del usuario actual
+    puede_marcar = (es_profesor or es_inspector) and not asistencia_bloqueada
+    puede_desbloquear = es_inspector and asistencia_bloqueada
+    puede_ver_boton_bloquear = (es_profesor or es_inspector) and not asistencia_bloqueada
 
     return render(request, 'gestorApp/sprint_2/marcar_asistencia.html', {
         'curso': curso,
         'alumnos': alumnos,
         'estado_actual': estado_actual,
-        'fecha_hoy': fecha_hoy
+        'fecha_hoy': fecha_hoy,
+        'asistencia_bloqueada': asistencia_bloqueada,
+        'info_marcaje': info_marcaje,
+        'puede_marcar': puede_marcar,
+        'puede_desbloquear': puede_desbloquear,
+        'puede_ver_boton_bloquear': puede_ver_boton_bloquear,
+        'es_inspector': es_inspector,
+        'es_profesor': es_profesor,
+        'usuario_actual': usuario_actual
     })
 
 
@@ -284,9 +379,9 @@ def login_view(request):
                     if usuario.rol == 'apoderado':
                         return redirect('portal_apoderado')
                     elif usuario.rol == 'inspector':
-                        return redirect('seleccionar_curso')
+                        return redirect('panel_control_rol')
                     elif usuario.rol == 'director':
-                        return redirect('dashboard_director')
+                        return redirect('panel_control_rol')
                     else:
                         return redirect('home')
                 else:

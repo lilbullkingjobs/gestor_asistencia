@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Panel de Inspector</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": {
+                            DEFAULT: "#0066CC",
+                            light: "#F0F4F8"
+                        },
+                        "background-light": "#F5F7FA",
+                        "content-light": "#ffffff",
+                        "text-primary": "#1A1A1A",
+                        "text-secondary": "#6B7280",
+                        "border-light": "#E5E7EB",
+                        "success": "#10B981",
+                        "danger": "#EF4444",
+                        "warning": "#F59E0B",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+            font-size: 20px;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="font-display bg-background-light text-text-primary">
+    <div class="flex min-h-screen w-full">
+        <!-- Sidebar -->
+        <aside class="flex-shrink-0 w-[180px] bg-content-light border-r border-border-light flex flex-col justify-between py-6">
+            <div>
+                <div class="flex items-center gap-2 px-4 mb-8">
+                    <svg class="text-primary size-6" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                        <path clip-rule="evenodd" d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" fill-rule="evenodd"></path>
+                        <path clip-rule="evenodd" d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263ZM25.354 2.29885C24.4788 1.98402 23.5212 1.98402 22.646 2.29885L4.98454 8.65208C3.7939 9.08038 3 10.2097 3 11.475V34.3663C3 36.0196 4.01719 37.5026 5.55962 38.098L22.9197 44.7987C23.6149 45.0671 24.3851 45.0671 25.0803 44.7987L42.4404 38.098C43.9828 37.5026 45 36.0196 45 34.3663V11.475C45 10.2097 44.2061 9.08038 43.0155 8.65208L25.354 2.29885Z" fill="currentColor" fill-rule="evenodd"></path>
+                    </svg>
+                    <h1 class="text-sm font-bold">Colegio Digital</h1>
+                </div>
+                <nav class="flex flex-col">
+                    <a class="flex items-center gap-3 px-4 py-2.5 bg-primary/5 border-l-4 border-primary text-primary font-medium" href="{% url 'panel_control_rol' %}">
+                        <span class="material-symbols-outlined fill">dashboard</span>
+                        <p class="text-sm">Panel de Control</p>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-2.5 text-text-secondary hover:bg-gray-50 transition-colors" href="{% url 'seleccionar_curso' %}">
+                        <span class="material-symbols-outlined">fact_check</span>
+                        <p class="text-sm">Marcar Asistencia</p>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-2.5 text-text-secondary hover:bg-gray-50 transition-colors" href="{% url 'seleccionar_curso_retiro' %}">
+                        <span class="material-symbols-outlined">logout</span>
+                        <p class="text-sm">Retiro de Alumnos</p>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-2.5 text-text-secondary hover:bg-gray-50 transition-colors" href="{% url 'validar_certificados_medicos' %}">
+                        <span class="material-symbols-outlined">verified</span>
+                        <p class="text-sm">Validar Certificados</p>
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-2.5 text-text-secondary hover:bg-gray-50 transition-colors" href="{% url 'monitorear_marcaje' %}">
+                        <span class="material-symbols-outlined">monitoring</span>
+                        <p class="text-sm">Monitorear</p>
+                    </a>
+                </nav>
+            </div>
+            <div>
+                <a class="flex items-center gap-3 px-4 py-2.5 text-text-secondary hover:bg-gray-50 transition-colors" href="{% url 'logout' %}">
+                    <span class="material-symbols-outlined">logout</span>
+                    <p class="text-sm">Cerrar Sesión</p>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto bg-background-light">
+            <!-- Header -->
+                <header class="bg-content-light border-b border-border-light px-8 py-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-xl font-bold text-text-primary">Panel de Inspector</h1>
+                            <p class="text-sm text-text-secondary mt-1">{{ fecha_hoy|date:"d/m/Y" }}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="text-right">
+                                <p class="text-sm font-semibold text-text-primary">{{ usuario.nombre }}</p>
+                                <p class="text-xs text-text-secondary">Inspector - Turno: {{ inspector.turno }}</p>
+                            </div>
+                            <div class="bg-blue-100 rounded-full size-10 flex items-center justify-center">
+                                <span class="text-blue-600 font-semibold text-sm">{{ usuario.nombre|first|upper }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+            <!-- Content -->
+            <div class="p-8">
+                <!-- Welcome Card -->
+                <div class="bg-gradient-to-r from-primary to-blue-600 text-white rounded-xl p-6 mb-8 shadow-lg">
+                    <h2 class="text-2xl font-bold mb-2">¡Bienvenido, {{ usuario.nombre }}!</h2>
+                    <p class="text-blue-100">Tienes {{ tareas_pendientes.asistencias_por_marcar }} asistencias pendientes por marcar y {{ tareas_pendientes.certificados_por_validar }} certificados por validar.</p>
+                </div>
+
+                <!-- Tareas Pendientes -->
+                <section class="mb-8">
+                    <h2 class="text-lg font-bold text-text-primary mb-6">Tareas Pendientes</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Asistencias por marcar -->
+                        <a href="{% url 'seleccionar_curso' %}" class="bg-content-light rounded-xl p-6 border border-border-light hover:shadow-lg transition-shadow">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="bg-warning/10 rounded-full size-12 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-warning text-2xl">fact_check</span>
+                                </div>
+                                <span class="text-3xl font-bold text-warning">{{ tareas_pendientes.asistencias_por_marcar }}</span>
+                            </div>
+                            <h3 class="font-semibold text-text-primary mb-1">Asistencias por Marcar</h3>
+                            <p class="text-sm text-text-secondary">Alumnos sin registro hoy</p>
+                        </a>
+
+                        <!-- Certificados por validar -->
+                        <a href="{% url 'validar_certificados_medicos' %}" class="bg-content-light rounded-xl p-6 border border-border-light hover:shadow-lg transition-shadow">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="bg-primary/10 rounded-full size-12 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-primary text-2xl">verified</span>
+                                </div>
+                                <span class="text-3xl font-bold text-primary">{{ tareas_pendientes.certificados_por_validar }}</span>
+                            </div>
+                            <h3 class="font-semibold text-text-primary mb-1">Certificados Pendientes</h3>
+                            <p class="text-sm text-text-secondary">Requieren validación</p>
+                        </a>
+
+                        <!-- Alumnos para retiro -->
+                        <a href="{% url 'seleccionar_curso_retiro' %}" class="bg-content-light rounded-xl p-6 border border-border-light hover:shadow-lg transition-shadow">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="bg-success/10 rounded-full size-12 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-success text-2xl">logout</span>
+                                </div>
+                                <span class="text-3xl font-bold text-success">{{ tareas_pendientes.alumnos_para_retiro }}</span>
+                            </div>
+                            <h3 class="font-semibold text-text-primary mb-1">Alumnos Presentes</h3>
+                            <p class="text-sm text-text-secondary">Disponibles para retiro</p>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- Estadísticas del Día -->
+                <section class="mb-8">
+                    <h2 class="text-lg font-bold text-text-primary mb-6">Resumen del Día</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-content-light rounded-xl p-6 border border-border-light">
+                            <div class="flex items-center gap-4 mb-2">
+                                <div class="bg-blue-100 rounded-full size-10 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-primary">notifications</span>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-text-primary">{{ notificaciones_hoy }}</p>
+                                    <p class="text-sm text-text-secondary">Notificaciones Enviadas</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-content-light rounded-xl p-6 border border-border-light">
+                            <div class="flex items-center gap-4 mb-2">
+                                <div class="bg-green-100 rounded-full size-10 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-success">check_circle</span>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-text-primary">{{ tareas_pendientes.alumnos_para_retiro }}</p>
+                                    <p class="text-sm text-text-secondary">Alumnos Presentes</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-content-light rounded-xl p-6 border border-border-light">
+                            <div class="flex items-center gap-4 mb-2">
+                                <div class="bg-orange-100 rounded-full size-10 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-warning">pending</span>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-text-primary">{{ tareas_pendientes.asistencias_por_marcar }}</p>
+                                    <p class="text-sm text-text-secondary">Sin Marcar</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-content-light rounded-xl p-6 border border-border-light">
+                            <div class="flex items-center gap-4 mb-2">
+                                <div class="bg-purple-100 rounded-full size-10 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-purple-600">description</span>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-text-primary">{{ tareas_pendientes.certificados_por_validar }}</p>
+                                    <p class="text-sm text-text-secondary">Certificados</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Accesos Rápidos -->
+                <section class="mb-8">
+                    <h2 class="text-lg font-bold text-text-primary mb-6">Accesos Rápidos</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <a href="{% url 'seleccionar_curso' %}" class="bg-content-light rounded-lg p-4 border border-border-light hover:border-primary hover:shadow-md transition-all flex items-center gap-3">
+                            <div class="bg-primary/10 rounded-lg size-12 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-primary">fact_check</span>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-text-primary text-sm">Marcar Asistencia</p>
+                                <p class="text-xs text-text-secondary">Por curso</p>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'seleccionar_curso_retiro' %}" class="bg-content-light rounded-lg p-4 border border-border-light hover:border-primary hover:shadow-md transition-all flex items-center gap-3">
+                            <div class="bg-success/10 rounded-lg size-12 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-success">logout</span>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-text-primary text-sm">Retiro de Alumnos</p>
+                                <p class="text-xs text-text-secondary">Registrar salida</p>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'validar_certificados_medicos' %}" class="bg-content-light rounded-lg p-4 border border-border-light hover:border-primary hover:shadow-md transition-all flex items-center gap-3">
+                            <div class="bg-warning/10 rounded-lg size-12 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-warning">verified</span>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-text-primary text-sm">Validar Certificados</p>
+                                <p class="text-xs text-text-secondary">Médicos</p>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'monitorear_marcaje' %}" class="bg-content-light rounded-lg p-4 border border-border-light hover:border-primary hover:shadow-md transition-all flex items-center gap-3">
+                            <div class="bg-purple-100 rounded-lg size-12 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-purple-600">monitoring</span>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-text-primary text-sm">Monitorear</p>
+                                <p class="text-xs text-text-secondary">Estado general</p>
+                            </div>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- Últimas Actividades -->
+                <section>
+                    <h2 class="text-lg font-bold text-text-primary mb-6">Últimas Actividades</h2>
+                    
+                    <div class="bg-content-light rounded-xl border border-border-light">
+                        {% if ultimas_actividades %}
+                        <div class="divide-y divide-border-light">
+                            {% for actividad in ultimas_actividades %}
+                            <div class="p-5">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0">
+                                        {% if actividad.tipo == 'Atraso' %}
+                                        <div class="bg-warning/10 text-warning rounded-full size-10 flex items-center justify-center">
+                                            <span class="material-symbols-outlined">schedule</span>
+                                        </div>
+                                        {% elif actividad.tipo == 'Inasistencia' or actividad.tipo == 'Inasistencia Prolongada' %}
+                                        <div class="bg-danger/10 text-danger rounded-full size-10 flex items-center justify-center">
+                                            <span class="material-symbols-outlined">error</span>
+                                        </div>
+                                        {% elif actividad.tipo == 'Certificado Médico' %}
+                                        <div class="bg-blue-100 text-primary rounded-full size-10 flex items-center justify-center">
+                                            <span class="material-symbols-outlined">description</span>
+                                        </div>
+                                        {% else %}
+                                        <div class="bg-primary/10 text-primary rounded-full size-10 flex items-center justify-center">
+                                            <span class="material-symbols-outlined">notifications</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between mb-1 gap-2">
+                                            <h3 class="font-semibold text-text-primary text-sm">{{ actividad.tipo }}</h3>
+                                            <span class="text-xs text-text-secondary whitespace-nowrap">
+                                                {{ actividad.fecha_envio|date:"d/m/Y H:i" }}
+                                            </span>
+                                        </div>
+                                        <p class="text-sm text-text-secondary mb-1">
+                                            <strong>{{ actividad.alumno.usuario.nombre }}</strong> - {{ actividad.alumno.curso.nombre }}
+                                        </p>
+                                        <p class="text-sm text-text-secondary">
+                                            {{ actividad.mensaje|truncatewords:20 }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="p-12 text-center">
+                            <span class="material-symbols-outlined text-6xl text-text-secondary mb-4">history</span>
+                            <p class="text-text-secondary">No hay actividades recientes.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

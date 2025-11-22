@@ -285,21 +285,34 @@
                     <input type="hidden" name="apoderado_id" value="{{ alumno.apoderado.id }}">
                     {% endif %}
                     
-                    <textarea name="observacion" placeholder="Observaciones (opcional): Ej. Retiro por motivo médico, cita dental, etc."></textarea>
+                    <textarea name="observacion" class="form-control mb-3" rows="2" placeholder="Observaciones (opcional): Ej. Retiro por motivo médico, cita dental, etc."></textarea>
                     
                     <button type="submit" class="btn-retirar">🚪 Registrar Retiro</button>
                 </form>
             </div>
             {% endfor %}
         </div>
-        
+
         {% else %}
         <div class="no-alumnos">
-            <p>📭 No hay alumnos presentes para retirar en este curso.</p>
-            <p style="font-size: 14px; margin-top: 10px;">Asegúrate de haber marcado la asistencia primero.</p>
-        </div>
-        {% endif %}
-        
+            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-8 text-center">
+                <span class="text-6xl mb-4">📭</span>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                    No hay alumnos presentes para retirar en este curso
+                </h3>
+                <p class="text-gray-600 mb-6">
+                    Asegúrate de haber marcado la asistencia primero y que haya alumnos con estado "Presente".
+                </p>
+                <div class="flex gap-3 justify-center flex-wrap">
+                    <a href="{% url 'seleccionar_curso_retiro' %}" 
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                        ← Volver a cursos
+                    </a>
+                    <a href="{% url 'marcar_asistencia' curso.id %}" 
+                    class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition">
+                        ✓ Marcar asistencia
+                    </a>
+                
         <a href="{% url 'seleccionar_curso_retiro' %}" class="back-link">← Volver a selección de cursos</a>
     </div>
     

@@ -1,138 +1,227 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistencia</title>
-</head>
-<body>
-    {% extends 'gestorApp/base.html' %}
-{% block title %}Marcaje de Asistencia{% endblock %}
+{% extends 'gestorApp/base.html' %}
+{% load custom_filters %}
+
+{% block title %}Marcaje de Asistencia - {{ curso.nombre }}{% endblock %}
+
 {% block content %}
-
 <div class="max-w-6xl mx-auto">
-  <!-- Título -->
-  <header class="mb-8">
-    <h1 class="text-4xl font-black leading-tight text-slate-900 dark:text-white mb-2">Marcaje de Asistencia</h1>
-    <p class="text-slate-500 dark:text-slate-400 text-lg">Selecciona el estado de asistencia de cada alumno y guarda los registros.</p>
-  </header>
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Marcaje de Asistencia</h1>
+            <p class="text-gray-400 mt-1">{{ curso.nombre }} - {{ fecha_hoy|date:"d/m/Y" }}</p>
+        </div>
+        <a href="{% url 'seleccionar_curso' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition">
+            ← Volver a cursos
+        </a>
+    </div>
 
-  <!-- Formulario -->
-  <form method="POST" class="bg-white dark:bg-slate-900/70 rounded-xl shadow-lg p-8">
-    {% csrf_token %}
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm border-collapse">
-        <thead>
-          <tr class="bg-[#0A2463] text-white text-left">
-            <th class="p-4 rounded-tl-lg">Alumno</th>
-            <th class="p-4 text-center">Presente</th>
-            <th class="p-4 text-center">Ausente</th>
-            <th class="p-4 text-center rounded-tr-lg">Retirado</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-900 text-green-100{% elif message.tags == 'error' %}bg-red-900 text-red-100{% else %}bg-yellow-900 text-yellow-100{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- ✅ ESTADO DE BLOQUEO -->
+    {% if asistencia_bloqueada %}
+        <div class="bg-green-900 border-l-4 border-green-500 p-4 mb-6 rounded-lg">
+            <div class="flex items-center">
+                <span class="text-2xl mr-3">🔒</span>
+                <div class="flex-1">
+                    <h3 class="text-green-100 font-bold text-lg">Asistencia Bloqueada</h3>
+                    <p class="text-green-200 text-sm mt-1">
+                        📅 <strong>Fecha:</strong> {{ info_marcaje.fecha_hora|date:"d/m/Y" }} | 
+                        🕐 <strong>Hora:</strong> {{ info_marcaje.fecha_hora|time:"H:i:s" }}
+                    </p>
+                    <p class="text-green-200 text-sm">
+                        👤 <strong>Marcado por:</strong> {{ info_marcaje.marcado_por }}
+                        {% if info_marcaje.rol_marcador == 'profesor' %}
+                            (Profesor)
+                        {% elif info_marcaje.rol_marcador == 'inspector' %}
+                            (Inspector)
+                        {% endif %}
+                    </p>
+                    <p class="text-green-300 text-sm mt-2">
+                        ✅ La asistencia está protegida y no se puede modificar hasta mañana.
+                    </p>
+                </div>
+                
+                <!-- ✅ BOTÓN DESBLOQUEAR - SOLO INSPECTORES -->
+                {% if puede_desbloquear %}
+                    <form method="POST" class="ml-4" onsubmit="return confirm('⚠️ ¿Estás seguro de desbloquear la asistencia? Esto permitirá realizar modificaciones.');">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="desbloquear">
+                        <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg">
+                            🔓 Desbloquear Asistencia
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ⚠️ ADVERTENCIA PARA PROFESORES -->
+    {% if not asistencia_bloqueada and es_profesor %}
+        <div class="bg-yellow-900 border-l-4 border-yellow-500 p-4 mb-6 rounded-lg">
+            <div class="flex items-center">
+                <span class="text-2xl mr-3">⚠️</span>
+                <div>
+                    <h3 class="text-yellow-100 font-bold">Modificaciones Bloqueadas</h3>
+                    <p class="text-yellow-200 text-sm mt-1">
+                        ⚠️ La asistencia ya fue registrada hoy y está bloqueada para prevenir cambios accidentales.
+                    </p>
+                    <p class="text-yellow-200 text-sm">
+                        Puedes usar el botón <strong>"Desbloquear Asistencia"</strong> si necesitas hacer modificaciones.
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ✅ FORMULARIO DE ASISTENCIA -->
+    <form method="POST" class="bg-gray-800 rounded-lg shadow-xl p-6">
+        {% csrf_token %}
+        
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-blue-900 text-white">
+                        <th class="px-4 py-3 text-left">Alumno</th>
+                        <th class="px-4 py-3 text-center">Presente</th>
+                        <th class="px-4 py-3 text-center">Ausente</th>
+                        <th class="px-4 py-3 text-center">Retirado</th>
+                        <th class="px-4 py-3 text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alumno in alumnos %}
+                        {% with estado=estado_actual|get_item:alumno.id %}
+                        <tr class="border-b border-gray-700 hover:bg-gray-700 transition">
+                            <td class="px-4 py-3 text-white">{{ alumno.usuario.nombre }}</td>
+                            
+                            <!-- Presente -->
+                            <td class="px-4 py-3 text-center">
+                                <button type="button" 
+                                        class="w-10 h-10 rounded-lg transition {% if estado == 'Presente' %}bg-green-600{% else %}bg-gray-700 hover:bg-green-700{% endif %} {% if asistencia_bloqueada %}opacity-50 cursor-not-allowed{% endif %}"
+                                        onclick="{% if not asistencia_bloqueada %}seleccionarEstado({{ alumno.id }}, 'Presente', this){% endif %}"
+                                        {% if asistencia_bloqueada %}disabled{% endif %}>
+                                    <span class="text-white text-xl">✓</span>
+                                </button>
+                                <input type="radio" name="estado_{{ alumno.id }}" value="Presente" 
+                                       class="hidden estado-input-{{ alumno.id }}" 
+                                       {% if estado == 'Presente' %}checked{% endif %}
+                                       {% if asistencia_bloqueada %}disabled{% endif %}>
+                            </td>
+                            
+                            <!-- Ausente -->
+                            <td class="px-4 py-3 text-center">
+                                <button type="button" 
+                                        class="w-10 h-10 rounded-lg transition {% if estado == 'Ausente' %}bg-red-600{% else %}bg-gray-700 hover:bg-red-700{% endif %} {% if asistencia_bloqueada %}opacity-50 cursor-not-allowed{% endif %}"
+                                        onclick="{% if not asistencia_bloqueada %}seleccionarEstado({{ alumno.id }}, 'Ausente', this){% endif %}"
+                                        {% if asistencia_bloqueada %}disabled{% endif %}>
+                                    <span class="text-white text-xl">✗</span>
+                                </button>
+                                <input type="radio" name="estado_{{ alumno.id }}" value="Ausente" 
+                                       class="hidden estado-input-{{ alumno.id }}" 
+                                       {% if estado == 'Ausente' %}checked{% endif %}
+                                       {% if asistencia_bloqueada %}disabled{% endif %}>
+                            </td>
+                            
+                            <!-- Retirado -->
+                            <td class="px-4 py-3 text-center">
+                                <button type="button" 
+                                        class="w-10 h-10 rounded-lg transition {% if estado == 'Retirado' %}bg-yellow-600{% else %}bg-gray-700 hover:bg-yellow-700{% endif %} {% if asistencia_bloqueada %}opacity-50 cursor-not-allowed{% endif %}"
+                                        onclick="{% if not asistencia_bloqueada %}seleccionarEstado({{ alumno.id }}, 'Retirado', this){% endif %}"
+                                        {% if asistencia_bloqueada %}disabled{% endif %}>
+                                    <span class="text-white text-xl">→</span>
+                                </button>
+                                <input type="radio" name="estado_{{ alumno.id }}" value="Retirado" 
+                                       class="hidden estado-input-{{ alumno.id }}" 
+                                       {% if estado == 'Retirado' %}checked{% endif %}
+                                       {% if asistencia_bloqueada %}disabled{% endif %}>
+                            </td>
+                            
+                            <td class="px-4 py-3 text-center">
+                                <span class="text-sm {% if estado == 'Presente' %}text-green-400{% elif estado == 'Ausente' %}text-red-400{% elif estado == 'Retirado' %}text-yellow-400{% else %}text-gray-400{% endif %}">
+                                    {% if estado %}{{ estado }}{% else %}Sin marcar{% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-6 flex justify-between items-center">
+            <p class="text-gray-400">
+                Total de alumnos: <span class="font-bold text-white">{{ alumnos.count }}</span>
+            </p>
             
-          {% for alumno in alumnos %}
-          <tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-            <td class="p-4 font-medium text-slate-900 dark:text-slate-200">{{ alumno.usuario.nombre }}</td>
-            <td class="text-center p-2">
-              <label class="inline-flex items-center justify-center cursor-pointer">
-                <input type="radio" name="estado_{{ alumno.id }}" value="Presente" class="hidden peer">
-                <span class="px-4 py-2 rounded-lg border border-slate-300 peer-checked:bg-green-500 peer-checked:text-white transition">✔</span>
-              </label>
-            </td>
-            <td class="text-center p-2">
-              <label class="inline-flex items-center justify-center cursor-pointer">
-                <input type="radio" name="estado_{{ alumno.id }}" value="Ausente" class="hidden peer">
-                <span class="px-4 py-2 rounded-lg border border-slate-300 peer-checked:bg-red-500 peer-checked:text-white transition">✖</span>
-              </label>
-            </td>
-            <td class="text-center p-2">
-              <label class="inline-flex items-center justify-center cursor-pointer">
-                <input type="radio" name="estado_{{ alumno.id }}" value="Retirado" class="hidden peer">
-                <span class="px-4 py-2 rounded-lg border border-slate-300 peer-checked:bg-yellow-500 peer-checked:text-white transition">⏳</span>
-              </label>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="4" class="text-center py-6 text-slate-500 dark:text-slate-400">
-              No hay alumnos registrados.
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+            <div class="flex gap-4">
+                <a href="{% url 'seleccionar_curso' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition">
+                    Cancelar
+                </a>
+                
+                {% if puede_ver_boton_bloquear %}
+                    <button type="submit" name="accion" value="bloquear" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg"
+                            onclick="return confirm('¿Confirmar el marcaje de asistencia? Una vez guardado, quedará bloqueado.');">
+                        🔒 Bloqueado
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </form>
 
-    <!-- Botón de envío -->
-    <div class="mt-8 flex justify-end">
-      <button type="submit"
-        class="bg-[#0A2463] text-white font-bold py-3 px-8 rounded-lg hover:bg-[#3E92CC] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3E92CC] transition-colors">
-        Guardar Asistencia
-      </button>
+    <!-- ℹ️ INFORMACIÓN DE PERMISOS -->
+    <div class="mt-6 bg-gray-800 rounded-lg p-4">
+        <h3 class="text-white font-bold mb-2">ℹ️ Información de Permisos</h3>
+        <ul class="text-gray-300 text-sm space-y-1">
+            <li>👨‍🏫 <strong>Profesores:</strong> Pueden marcar asistencia UNA VEZ por día. Una vez bloqueada, no pueden modificar.</li>
+            <li>👮 <strong>Inspectores:</strong> Pueden desbloquear y modificar la asistencia cuando sea necesario.</li>
+            <li>🔒 La asistencia bloqueada se reinicia automáticamente cada día.</li>
+        </ul>
     </div>
-  </form>
 </div>
 
-{% endblock %}
-
-</body>
-</html>
-
-<!-- Agregar al final del archivo marcar_asistencia.html existente -->
-
 <script>
-// Función para enviar notificación de atraso
-function notificarAtraso(alumnoId, alumnoNombre) {
-    if (confirm(`¿Enviar notificación de atraso al apoderado de ${alumnoNombre}?`)) {
-        fetch('/notificar-atraso/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: `alumno_id=${alumnoId}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('✅ Notificación enviada correctamente');
-            } else {
-                alert('❌ Error al enviar notificación: ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('❌ Error al enviar notificación');
-        });
+function seleccionarEstado(alumnoId, estado, boton) {
+    // Obtener todos los inputs del alumno
+    const inputs = document.querySelectorAll('.estado-input-' + alumnoId);
+    
+    // Desmarcar todos
+    inputs.forEach(input => {
+        input.checked = false;
+    });
+    
+    // Marcar el seleccionado
+    const inputSeleccionado = document.querySelector(`input[name="estado_${alumnoId}"][value="${estado}"]`);
+    if (inputSeleccionado) {
+        inputSeleccionado.checked = true;
+    }
+    
+    // Actualizar estilos de botones
+    const fila = boton.closest('tr');
+    const botones = fila.querySelectorAll('button[type="button"]');
+    
+    botones.forEach(btn => {
+        btn.classList.remove('bg-green-600', 'bg-red-600', 'bg-yellow-600');
+        btn.classList.add('bg-gray-700');
+    });
+    
+    // Aplicar estilo al botón seleccionado
+    if (estado === 'Presente') {
+        boton.classList.remove('bg-gray-700');
+        boton.classList.add('bg-green-600');
+    } else if (estado === 'Ausente') {
+        boton.classList.remove('bg-gray-700');
+        boton.classList.add('bg-red-600');
+    } else if (estado === 'Retirado') {
+        boton.classList.remove('bg-gray-700');
+        boton.classList.add('bg-yellow-600');
     }
 }
 </script>
-
-<!-- Ejemplo de botón para agregar en cada fila de alumno -->
-<!-- 
-<button type="button" onclick="notificarAtraso({{ alumno.id }}, '{{ alumno.usuario.nombre }}')" 
-        class="btn-notificar">
-    🔔 Notificar Atraso
-</button>
--->
-
-<style>
-.btn-notificar {
-    background: #ffc107;
-    color: #333;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 600;
-    transition: all 0.2s;
-}
-
-.btn-notificar:hover {
-    background: #ffb300;
-    transform: translateY(-2px);
-}
-</style>
+{% endblock %}

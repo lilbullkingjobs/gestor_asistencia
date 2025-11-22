@@ -144,18 +144,13 @@ class Inspector(models.Model):
 # ============================================
 # SPRINT 2: ASISTENCIA Y RETIRO (16 PH)
 # ============================================
-
 class Asistencia(models.Model):
     """
     Sprint 2 - HU2: Marcar asistencia (10 PH)
     Sprint 2 - HU3: Retiro durante jornada (6 PH)
-    Sprint 4 - HU5: Visualizar historial
-    Sprint 5 - HU7, HU8: Notificaciones y monitoreo
-    Sprint 6 - HU10, HU13: Reportes
-    Sprint 7 - HU12: Modificar asistencia manualmente (13 PH)
     """
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE, related_name='asistencias')
-    fecha = models.DateField(auto_now_add=True)
+    fecha = models.DateField()
     hora_ingreso = models.TimeField(null=True, blank=True)
     hora_salida = models.TimeField(null=True, blank=True)
     estado = models.CharField(max_length=20, choices=[
@@ -171,6 +166,16 @@ class Asistencia(models.Model):
         blank=True,
         related_name='retiros_autorizados'
     )
+    # ✅ NUEVO: Registro de cuándo se marcó la asistencia
+    fecha_hora_marcaje = models.DateTimeField(null=True, blank=True, help_text="Fecha y hora en que se marcó/actualizó la asistencia")
+    marcado_por = models.ForeignKey(
+        Usuario,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='asistencias_marcadas',
+        help_text="Usuario que marcó la asistencia"
+    )
 
     def __str__(self):
         return f"{self.alumno.usuario.nombre} - {self.fecha} - {self.estado}"
@@ -179,11 +184,11 @@ class Asistencia(models.Model):
         verbose_name = "Asistencia"
         verbose_name_plural = "Asistencias"
         ordering = ['-fecha', 'alumno__usuario__nombre']
+        unique_together = [['alumno', 'fecha']]
         indexes = [
             models.Index(fields=['fecha', 'estado']),
             models.Index(fields=['alumno', 'fecha']),
         ]
-
 
 # ============================================
 # SPRINT 5: CERTIFICADOS Y MONITOREO (29 PH)
