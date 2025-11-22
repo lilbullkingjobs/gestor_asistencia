@@ -12,6 +12,7 @@ from django.core.mail import send_mail
 from datetime import date
 
 def home(request):
+    
     if request.session.get('usuario_id'):
         usuario_rol = request.session.get('usuario_rol')
         if usuario_rol == 'director':
@@ -23,7 +24,8 @@ def home(request):
         elif usuario_rol == 'apoderado':
             return redirect('portal_apoderado')
     
-    return render(request, 'gestorApp/home.html')
+    # Si no hay sesión activa, redirigir al login
+    return redirect('login')
 
 def registro_alumno(request):
     if request.method == 'POST':
@@ -124,18 +126,45 @@ def registro_inspector(request):
 
 def seleccionar_curso(request):
     """Vista para seleccionar el curso antes de marcar asistencia"""
-    cursos = Curso.objects.all()
+    usuario_id = request.session.get('usuario_id')
+    
+    if usuario_id:
+        try:
+            usuario = Usuario.objects.get(id=usuario_id)
+            
+            # Si es profesor, solo mostrar sus cursos
+            if usuario.rol == 'profesor':
+                profesor = Profesor.objects.get(usuario=usuario)
+                cursos = Curso.objects.filter(profesor=profesor)
+            else:
+                # Inspectores y directores ven todos los cursos
+                cursos = Curso.objects.all()
+                
+        except (Usuario.DoesNotExist, Profesor.DoesNotExist):
+            cursos = Curso.objects.all()
+    else:
+        cursos = Curso.objects.all()
+    
     return render(request, 'gestorApp/sprint_2/asistencia_cursos.html', {'cursos': cursos})
 
 
 def marcar_asistencia(request, curso_id):
-    """Vista para marcar asistencia de un curso específico"""
-    # Buscar curso o retornar 404 si no existe
+    """Vista para marcar asistencia de un curso específico con límite de tiempo"""
+    from datetime import time as datetime_time
+    
     curso = get_object_or_404(Curso, id=curso_id)
     alumnos = Alumno.objects.filter(curso=curso)
 
-    # Obtener la fecha actual
     fecha_hoy = timezone.now().date()
+    hora_actual = timezone.now().time()
+    
+    # ✅ LÍMITE DE TIEMPO: 90 minutos = 1 hora 30 minutos
+    # Si la clase empieza a las 08:00, se puede marcar hasta las 09:30
+    HORA_INICIO_CLASES = datetime_time(8, 0)  # 08:00 AM
+    HORA_LIMITE_MARCAJE = datetime_time(9, 30)  # 09:30 AM (90 minutos después)
+    
+    # Verificar si estamos dentro del horario permitido
+    fuera_de_horario = hora_actual > HORA_LIMITE_MARCAJE
     
     # Verificar si la asistencia ya fue marcada y bloqueada
     asistencias_hoy = Asistencia.objects.filter(alumno__curso=curso, fecha=fecha_hoy)
@@ -158,13 +187,12 @@ def marcar_asistencia(request, curso_id):
     if request.method == 'POST':
         accion = request.POST.get('accion')
         
-        # ✅ DESBLOQUEO: Solo inspectores pueden desbloquear
+        # DESBLOQUEO: Solo inspectores pueden desbloquear
         if accion == 'desbloquear':
             if es_inspector:
                 asistencias_hoy.update(fecha_hora_marcaje=None, marcado_por=None)
                 messages.success(request, "🔓 Asistencia desbloqueada. Ahora puedes modificarla.")
                 
-                # Registrar en auditoría
                 registrar_auditoria(
                     usuario=usuario_actual,
                     accion='Desbloqueo de Asistencia',
@@ -178,11 +206,21 @@ def marcar_asistencia(request, curso_id):
                 messages.error(request, "❌ Solo los inspectores pueden desbloquear la asistencia.")
                 return redirect('marcar_asistencia', curso_id=curso.id)
         
-        # ✅ BLOQUEO: Profesores e inspectores pueden bloquear (guardar asistencia)
+        # BLOQUEO: Profesores e inspectores pueden bloquear (guardar asistencia)
         if accion == 'bloquear':
             # Verificar permisos
             if not (es_profesor or es_inspector):
                 messages.error(request, "❌ No tienes permiso para marcar asistencia.")
+                return redirect('marcar_asistencia', curso_id=curso.id)
+            
+            # ✅ VERIFICAR LÍMITE DE TIEMPO (solo para profesores)
+            if es_profesor and fuera_de_horario and not asistencia_bloqueada:
+                messages.error(
+                    request, 
+                    f"❌ El tiempo para marcar asistencia ha expirado. "
+                    f"Solo se puede marcar hasta las {HORA_LIMITE_MARCAJE.strftime('%H:%M')} "
+                    f"(90 minutos desde el inicio de clases). Contacta a un inspector."
+                )
                 return redirect('marcar_asistencia', curso_id=curso.id)
             
             # Verificar si ya está bloqueada
@@ -191,13 +229,12 @@ def marcar_asistencia(request, curso_id):
                 return redirect('marcar_asistencia', curso_id=curso.id)
             
             registros_guardados = 0
-            hora_actual = timezone.now().time()
+            hora_actual_marcaje = timezone.now().time()
             fecha_hora_actual = timezone.now()
 
             for alumno in alumnos:
                 estado = request.POST.get(f"estado_{alumno.id}")
                 if estado:
-                    # update_or_create previene duplicados automáticamente
                     asistencia, created = Asistencia.objects.update_or_create(
                         alumno=alumno,
                         fecha=fecha_hoy,
@@ -208,21 +245,19 @@ def marcar_asistencia(request, curso_id):
                         }
                     )
                     
-                    # Actualizar horas según el estado
                     if estado == 'Presente' and not asistencia.hora_ingreso:
-                        asistencia.hora_ingreso = hora_actual
+                        asistencia.hora_ingreso = hora_actual_marcaje
                     
                     if estado == 'Retirado':
                         if not asistencia.hora_salida:
-                            asistencia.hora_salida = hora_actual
+                            asistencia.hora_salida = hora_actual_marcaje
                         if not asistencia.hora_ingreso:
-                            asistencia.hora_ingreso = hora_actual
+                            asistencia.hora_ingreso = hora_actual_marcaje
                     
                     asistencia.save()
                     registros_guardados += 1
 
             if registros_guardados > 0:
-                # Registrar en auditoría
                 registrar_auditoria(
                     usuario=usuario_actual,
                     accion='Marcaje de Asistencia',
@@ -246,7 +281,6 @@ def marcar_asistencia(request, curso_id):
     # En GET mostramos los alumnos del curso
     estado_actual = {a.alumno.id: a.estado for a in asistencias_hoy}
     
-    # Información de marcaje para mostrar
     info_marcaje = None
     if asistencias_hoy.exists():
         primera_asistencia = asistencias_hoy.first()
@@ -257,10 +291,10 @@ def marcar_asistencia(request, curso_id):
                 'rol_marcador': primera_asistencia.marcado_por.rol if primera_asistencia.marcado_por else 'Desconocido'
             }
 
-    # ✅ Determinar permisos del usuario actual
-    puede_marcar = (es_profesor or es_inspector) and not asistencia_bloqueada
+    # Determinar permisos del usuario actual
+    puede_marcar = (es_profesor or es_inspector) and not asistencia_bloqueada and not (es_profesor and fuera_de_horario)
     puede_desbloquear = es_inspector and asistencia_bloqueada
-    puede_ver_boton_bloquear = (es_profesor or es_inspector) and not asistencia_bloqueada
+    puede_ver_boton_bloquear = (es_profesor or es_inspector) and not asistencia_bloqueada and not (es_profesor and fuera_de_horario)
 
     return render(request, 'gestorApp/sprint_2/marcar_asistencia.html', {
         'curso': curso,
@@ -274,9 +308,10 @@ def marcar_asistencia(request, curso_id):
         'puede_ver_boton_bloquear': puede_ver_boton_bloquear,
         'es_inspector': es_inspector,
         'es_profesor': es_profesor,
-        'usuario_actual': usuario_actual
+        'usuario_actual': usuario_actual,
+        'fuera_de_horario': fuera_de_horario,
+        'hora_limite': HORA_LIMITE_MARCAJE.strftime('%H:%M')
     })
-
 
 def seleccionar_curso_retiro(request):
     """Vista para seleccionar el curso antes de retirar alumnos"""
@@ -677,6 +712,72 @@ def alerta_inasistencia(request):
         messages.error(request, "❌ Usuario no encontrado.")
         return redirect('login')
     
+def registrar_atraso(request):
+    """Vista para registrar cuando un alumno llega tarde"""
+    if request.method == 'POST':
+        try:
+            alumno_id = request.POST.get('alumno_id')
+            observacion = request.POST.get('observacion', '')
+            
+            alumno = get_object_or_404(Alumno, id=alumno_id)
+            fecha_hoy = timezone.now().date()
+            hora_actual = timezone.now().time()
+            
+            # Obtener usuario que registra el atraso
+            usuario_id = request.session.get('usuario_id')
+            usuario_actual = None
+            if usuario_id:
+                usuario_actual = Usuario.objects.get(id=usuario_id)
+            
+            # Crear o actualizar asistencia como "Presente" pero con atraso
+            asistencia, created = Asistencia.objects.update_or_create(
+                alumno=alumno,
+                fecha=fecha_hoy,
+                defaults={
+                    'estado': 'Presente',
+                    'hora_ingreso': hora_actual,
+                    'observacion': f"ATRASO - Llegó a las {hora_actual.strftime('%H:%M')}. {observacion}",
+                    'fecha_hora_marcaje': timezone.now(),
+                    'marcado_por': usuario_actual
+                }
+            )
+            
+            # Crear notificación de atraso para el apoderado
+            Notificacion.objects.create(
+                tipo='Atraso',
+                mensaje=f"{alumno.usuario.nombre} llegó tarde el {fecha_hoy.strftime('%d/%m/%Y')} a las {hora_actual.strftime('%H:%M')}. {observacion}",
+                alumno=alumno,
+                inspector=Inspector.objects.filter(usuario=usuario_actual).first() if usuario_actual and usuario_actual.rol == 'inspector' else None,
+                apoderado=alumno.apoderado
+            )
+            
+            messages.success(
+                request, 
+                f"✅ Atraso registrado: {alumno.usuario.nombre} ingresó a las {hora_actual.strftime('%H:%M')}. "
+                f"Se notificó al apoderado."
+            )
+            
+            return JsonResponse({
+                'success': True, 
+                'mensaje': f"Atraso registrado correctamente",
+                'hora': hora_actual.strftime('%H:%M')
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    # Vista GET para mostrar formulario de atrasos
+    fecha_hoy = timezone.now().date()
+    
+    # Obtener alumnos que NO tienen asistencia marcada hoy
+    alumnos_sin_asistencia = Alumno.objects.exclude(
+        asistencias__fecha=fecha_hoy
+    ).select_related('usuario', 'curso', 'apoderado__usuario').order_by('curso__nombre', 'usuario__nombre')
+    
+    return render(request, 'gestorApp/sprint_4/registrar_atraso.html', {
+        'alumnos_sin_asistencia': alumnos_sin_asistencia,
+        'fecha_hoy': fecha_hoy
+    })
 
 # ============================================
 # SPRINT 5: CERTIFICADOS Y MONITOREO
@@ -1789,3 +1890,5 @@ def registro_auditoria(request):
     except Usuario.DoesNotExist:
         messages.error(request, "❌ Usuario no encontrado.")
         return redirect('login')
+    
+

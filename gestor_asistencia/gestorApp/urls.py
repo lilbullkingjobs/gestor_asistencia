@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     # ============================================#
-    # PÁGINA DE INICIO
+    # PÁGINA DE INICIO (Redirige al login)
     # ============================================#
     path('', views.home, name='home'),  
     
@@ -22,7 +22,7 @@ urlpatterns = [
     path('retiro/<int:curso_id>/', views.retiro_alumno, name='retiro_alumno'),
     
     # ============================================#
-    # SPRINT 3: Seguridad y Recuperación (HU15, HU16)
+    # SPRINT 3: Seguridad y Recuperación
     # ============================================#
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
@@ -30,35 +30,36 @@ urlpatterns = [
     path('cambiar-contrasena/<int:usuario_id>/<str:token>/', views.cambiar_contrasena, name='cambiar_contrasena'),
     
     # ============================================#
-    # SPRINT 4: Portal Apoderado y Notificaciones (HU4, HU5, HU17, HU14)
+    # SPRINT 4: Portal Apoderado y Notificaciones
     # ============================================#
     path('portal-apoderado/', views.portal_apoderado, name='portal_apoderado'),
     path('historial-asistencia/<int:alumno_id>/', views.historial_asistencia, name='historial_asistencia'),
     path('notificar-atraso/', views.notificar_atraso, name='notificar_atraso'),
     path('alerta-inasistencia/', views.alerta_inasistencia, name='alerta_inasistencia'),
+    path('registrar-atraso/', views.registrar_atraso, name='registrar_atraso'),
     
     # ============================================#
-    # SPRINT 5: Certificados y Monitoreo (HU6, HU7, HU8)
+    # SPRINT 5: Certificados y Monitoreo
     # ============================================#
     path('subir-certificado-medico/', views.subir_certificado_medico, name='subir_certificado_medico'),
     path('notificacion-inasistencia/', views.notificacion_inasistencia, name='notificacion_inasistencia'),
     path('monitorear-marcaje/', views.monitorear_marcaje, name='monitorear_marcaje'),
     
     # ============================================#
-    # SPRINT 6: Reportes y Validaciones (HU9, HU10, HU13)
+    # SPRINT 6: Reportes y Validaciones
     # ============================================#
     path('validar-certificados-medicos/', views.validar_certificados_medicos, name='validar_certificados_medicos'),
     path('generar-reporte-diario/', views.generar_reporte_diario, name='generar_reporte_diario'),
     path('reporte-mensual/', views.reporte_mensual, name='reporte_mensual'),
     
     # ============================================#
-    # SPRINT 7: Modificación y Panel de Control (HU12, HU18)
+    # SPRINT 7: Modificación y Panel de Control
     # ============================================#
     path('modificar-asistencia-manual/', views.modificar_asistencia_manual, name='modificar_asistencia_manual'),
     path('panel-control/', views.panel_control_rol, name='panel_control_rol'),
     
     # ============================================#
-    # SPRINT 8: Exportación y Auditoría (HU19, HU20)
+    # SPRINT 8: Exportación y Auditoría
     # ============================================#
     path('exportar-reporte/', views.exportar_reporte, name='exportar_reporte'),
     path('registro-auditoria/', views.registro_auditoria, name='registro_auditoria'),
