@@ -1,7 +1,7 @@
 from django.db import models
 
 # ============================================
-# MODELOS BASE DEL SISTEMA
+# MODELOS BASE DEL SISTEMA Prueba
 # ============================================
 
 class Usuario(models.Model):
