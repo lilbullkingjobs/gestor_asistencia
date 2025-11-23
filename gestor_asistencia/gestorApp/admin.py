@@ -16,3 +16,9 @@ admin.site.register(Asistencia)
 admin.site.register(CertificadoMedico)
 admin.site.register(Notificacion)
 
+
+
+
+
+
+
