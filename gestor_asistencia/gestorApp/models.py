@@ -380,3 +380,11 @@ SPRINT 8 (21 PH):
 
 TOTAL: 8 Modelos principales + 1 Auditoría
 """
+
+def historial_asistencia(request, alumno_id):
+    alumno = get_object_or_404(Alumno, pk=alumno_id)
+    asistencias = Asistencia.objects.filter(alumno=alumno)
+    return render(request, 'sprint_4/historial_asistencia.html', {
+        'alumno': alumno,
+        'asistencias': asistencias
+    })

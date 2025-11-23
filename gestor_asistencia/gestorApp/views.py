@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.db.models import Q , Count
 from django.http import JsonResponse
 from datetime import datetime, timedelta
-from .models import Alumno, Apoderado, Curso, Usuario, Asistencia, Inspector, Director, Profesor, Notificacion, CertificadoMedico
+from .models import Alumno, Apoderado, Curso, Usuario, Asistencia, Inspector, Director, Profesor, Notificacion, CertificadoMedico, historial_asistencia
 from django.contrib.auth.hashers import make_password, check_password
 from django.core.files.storage import FileSystemStorage
 from django.db.models import Count, Q
@@ -1892,3 +1892,13 @@ def registro_auditoria(request):
         return redirect('login')
     
 
+def ver_certificado_medico(request):
+    return render(request, 'gestorApp/sprint_5/cert_archivo_pdf.html')
+
+def historial_asistencia(request, alumno_id):
+    alumno = get_object_or_404(Alumno, pk=alumno_id)
+    asistencias = Asistencia.objects.filter(alumno=alumno)
+    return render(request, 'sprint_4/historial_asistencia.html', {
+        'alumno': alumno,
+        'asistencias': asistencias
+    })
