@@ -28,7 +28,7 @@
                 <button onclick="window.print()" class="btn btn-primary">
                     <i class="fas fa-print"></i> Imprimir
                 </button>
-                <a href="{% url 'seleccionar_curso' %}" class="btn btn-secondary">
+                <a href="{% url 'panel_control_rol' %}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Volver
                 </a>
             </div>
@@ -41,13 +41,14 @@
                     <div class="col-md-3">
                         <label for="mes" class="form-label">Mes</label>
                         <select class="form-select" id="mes" name="mes" onchange="this.form.submit()">
-                            {% for m in "123456789012"|make_list %}
-                            <option value="{{ forloop.counter }}" 
-                                {% if forloop.counter == estadisticas_generales.mes %}selected{% endif %}>
-                                {{ forloop.counter|date:"F" }}
-                            </option>
+                            {% for mes_nombre in meses %}
+                                <option value="{{ forloop.counter }}"
+                                    {% if forloop.counter == estadisticas_generales.mes %}selected{% endif %}>
+                                    {{ mes_nombre }}
+                                </option>
                             {% endfor %}
                         </select>
+
                     </div>
                     <div class="col-md-3">
                         <label for="anio" class="form-label">Año</label>
@@ -59,6 +60,7 @@
                 </form>
             </div>
         </div>
+
 
         <!-- Título del Reporte -->
         <div class="highlight-box text-center">

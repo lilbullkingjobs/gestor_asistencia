@@ -459,7 +459,7 @@
                 <div class="notification-item">
                     <div class="notification-content">
                         <strong>{{ notificacion.tipo }}</strong>
-                        <span> - {{ notificacion.alumno.usuario.nombre }}</span>
+                        <span> {{ notificacion.alumno.usuario.nombre }} - {{ notificacion.alumno.curso.nombre }}</span>
                         <br>
                         <small>{{ notificacion.mensaje|truncatewords:15 }}</small>
                     </div>
@@ -481,10 +481,8 @@
             <div class="quick-actions">
                 <a href="{% url 'generar_reporte_diario' %}" class="action-btn">📊 Reporte Diario</a>
                 <a href="{% url 'reporte_mensual' %}" class="action-btn">📈 Reporte Mensual</a>
-                <a href="{% url 'registro_auditoria' %}" class="action-btn">🔍 Auditoría</a>
                 <a href="{% url 'monitorear_marcaje' %}" class="action-btn">👁️ Monitorear</a>
-                <a href="{% url 'modificar_asistencia_manual' %}" class="action-btn">✏️ Modificar Asistencia</a>
-                <a href="{% url 'exportar_reporte' %}?tipo=diario&formato=csv" class="action-btn">💾 Exportar</a>
+                <a href="#" class="action-btn">✏️ Modificar Asistencia</a> <!-- url modificar_asistencia_manual (falta modificar la ruta, yo creo que es buenon colocar la misma vista de modificacion del inspector) -->
             </div>
         </div>
     </div>
