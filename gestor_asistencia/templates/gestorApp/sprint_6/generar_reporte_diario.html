@@ -22,7 +22,7 @@
                 <button onclick="window.print()" class="btn btn-primary">
                     <i class="fas fa-print"></i> Imprimir
                 </button>
-                <a href="{% url 'seleccionar_curso' %}" class="btn btn-secondary">
+                <a href="{% url 'panel_control_rol' %}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Volver
                 </a>
             </div>
@@ -37,7 +37,7 @@
                             <i class="fas fa-calendar"></i> Seleccionar Fecha
                         </label>
                         <input type="date" class="form-control" id="fecha" name="fecha" 
-                               value="{{ fecha_reporte|date:'Y-m-d' }}" onchange="this.form.submit()">
+                            value="{{ fecha_reporte|date:'Y-m-d' }}" onchange="this.form.submit()">
                     </div>
                 </form>
             </div>

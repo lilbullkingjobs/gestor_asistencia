@@ -1278,7 +1278,10 @@ def reporte_mensual(request):
         estadisticas_generales = {
             'mes': mes,
             'anio': anio,
-            'nombre_mes': primer_dia.strftime('%B'),
+            'nombre_mes': [
+                "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+            ][mes - 1],
             'dias_lectivos': dias_lectivos,
             'total_alumnos': total_alumnos,
             'total_presentes': asistencias_mes.filter(estado='Presente').count(),
@@ -1340,6 +1343,12 @@ def reporte_mensual(request):
             total=Count('id')
         ).order_by('-total')
         
+        meses = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+            ]
+
+        
         return render(request, 'gestorApp/sprint_6/reporte_mensual.html', {
             'estadisticas_generales': estadisticas_generales,
             'estadisticas_por_curso': estadisticas_por_curso,
@@ -1347,7 +1356,8 @@ def reporte_mensual(request):
             'certificados_mes': certificados_mes,
             'notificaciones_mes': notificaciones_mes,
             'primer_dia': primer_dia,
-            'ultimo_dia': ultimo_dia
+            'ultimo_dia': ultimo_dia,
+            'meses': meses
         })
         
     except Usuario.DoesNotExist:
