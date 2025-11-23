@@ -42,6 +42,7 @@ urlpatterns = [
     # SPRINT 5: Certificados y Monitoreo
     # ============================================#
     path('subir-certificado-medico/', views.subir_certificado_medico, name='subir_certificado_medico'),
+    path('cert_archivo_pdf/', views.ver_certificado_medico, name='ver_certificado_medico'),
     path('notificacion-inasistencia/', views.notificacion_inasistencia, name='notificacion_inasistencia'),
     path('monitorear-marcaje/', views.monitorear_marcaje, name='monitorear_marcaje'),
     

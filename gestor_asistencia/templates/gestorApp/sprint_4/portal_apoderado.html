@@ -57,16 +57,38 @@
                     </svg>
                     <h1 class="text-sm font-bold">Colegio Digital</h1>
                 </div>
-                <nav class="flex flex-col">
-                    <a class="flex items-center gap-3 px-4 py-2.5 bg-primary/5 border-l-4 border-primary text-primary font-medium" href="#">
-                        <span class="material-symbols-outlined fill">group</span>
-                        <p class="text-sm">Mis Hijos</p>
-                    </a>
-                    <a class="flex items-center gap-3 px-4 py-2.5 text-text-secondary hover:bg-gray-50 transition-colors" href="#">
-                        <span class="material-symbols-outlined">history</span>
-                        <p class="text-sm">Historial de Asistencia</p>
-                    </a>
-                    <a class="flex items-center gap-3 px-4 py-2.5 text-text-secondary hover:bg-gray-50 transition-colors" href="#">
+
+
+<nav class="flex flex-col">
+  <!-- Botón principal -->
+  <button 
+    onclick="document.getElementById('lista-alumnos').classList.toggle('hidden')" 
+    class="flex items-center gap-3 px-4 py-2.5 bg-primary/5 border-l-4 border-primary text-primary font-medium w-full text-left">
+    <span class="material-symbols-outlined fill">group</span>
+    <p class="text-sm">Mis Alumnos</p>
+  </button>
+
+  <!-- Lista oculta por defecto -->
+  <ul id="lista-alumnos" class="ml-8 mt-2 hidden">
+    {% for alumno in alumnos %}
+      <li>
+        <a href="{% url 'historial_asistencia' alumno.id %}" class="text-sm text-blue-600 hover:underline">
+          {{ alumno.usuario.nombre }} 
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</nav>
+
+
+    <a class="flex items-center gap-3 px-4 py-2.5 text-text-secondary hover:bg-gray-50 transition-colors">
+        <span class="material-symbols-outlined">history</span>
+        <p class="text-sm">Historial de Asistencia</p>
+    </a>
+
+</nav>
+
+                    <a class="flex items-center gap-3 px-4 py-2.5 text-text-secondary hover:bg-gray-50 transition-colors" href="{% url 'subir_certificado_medico'%}">
                         <span class="material-symbols-outlined">description</span>
                         <p class="text-sm">Certificados Médicos</p>
                     </a>

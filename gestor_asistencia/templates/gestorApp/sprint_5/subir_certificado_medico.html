@@ -128,7 +128,7 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <a href="{{ cert.archivo_pdf.url }}" target="_blank" 
+                                            <a href="{% url 'ver_certificado_medico' %}"  target="_blank" 
                                                class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-eye"></i> Ver PDF
                                             </a>
