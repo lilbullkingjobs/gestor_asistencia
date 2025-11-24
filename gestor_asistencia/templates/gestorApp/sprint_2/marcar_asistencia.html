@@ -79,101 +79,93 @@
         </div>
     {% endif %}
 
-    <!-- ✅ FORMULARIO DE ASISTENCIA -->
-    <form method="POST" class="bg-gray-800 rounded-lg shadow-xl p-6">
-        {% csrf_token %}
-        
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead>
-                    <tr class="bg-blue-900 text-white">
-                        <th class="px-4 py-3 text-left">Alumno</th>
-                        <th class="px-4 py-3 text-center">Presente</th>
-                        <th class="px-4 py-3 text-center">Ausente</th>
-                        <th class="px-4 py-3 text-center">Retirado</th>
-                        <th class="px-4 py-3 text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for alumno in alumnos %}
-                        {% with estado=estado_actual|get_item:alumno.id %}
-                        <tr class="border-b border-gray-700 hover:bg-gray-700 transition">
-                            <td class="px-4 py-3 text-white">{{ alumno.usuario.nombre }}</td>
-                            
-                            <!-- Presente -->
-                            <td class="px-4 py-3 text-center">
-                                <button type="button" 
-                                        class="w-10 h-10 rounded-lg transition {% if estado == 'Presente' %}bg-green-600{% else %}bg-gray-700 hover:bg-green-700{% endif %} {% if asistencia_bloqueada %}opacity-50 cursor-not-allowed{% endif %}"
-                                        onclick="{% if not asistencia_bloqueada %}seleccionarEstado({{ alumno.id }}, 'Presente', this){% endif %}"
-                                        {% if asistencia_bloqueada %}disabled{% endif %}>
-                                    <span class="text-white text-xl">✓</span>
-                                </button>
-                                <input type="radio" name="estado_{{ alumno.id }}" value="Presente" 
-                                       class="hidden estado-input-{{ alumno.id }}" 
-                                       {% if estado == 'Presente' %}checked{% endif %}
-                                       {% if asistencia_bloqueada %}disabled{% endif %}>
-                            </td>
-                            
-                            <!-- Ausente -->
-                            <td class="px-4 py-3 text-center">
-                                <button type="button" 
-                                        class="w-10 h-10 rounded-lg transition {% if estado == 'Ausente' %}bg-red-600{% else %}bg-gray-700 hover:bg-red-700{% endif %} {% if asistencia_bloqueada %}opacity-50 cursor-not-allowed{% endif %}"
-                                        onclick="{% if not asistencia_bloqueada %}seleccionarEstado({{ alumno.id }}, 'Ausente', this){% endif %}"
-                                        {% if asistencia_bloqueada %}disabled{% endif %}>
-                                    <span class="text-white text-xl">✗</span>
-                                </button>
-                                <input type="radio" name="estado_{{ alumno.id }}" value="Ausente" 
-                                       class="hidden estado-input-{{ alumno.id }}" 
-                                       {% if estado == 'Ausente' %}checked{% endif %}
-                                       {% if asistencia_bloqueada %}disabled{% endif %}>
-                            </td>
-                            
-                            <!-- Retirado -->
-                            <td class="px-4 py-3 text-center">
-                                <button type="button" 
-                                        class="w-10 h-10 rounded-lg transition {% if estado == 'Retirado' %}bg-yellow-600{% else %}bg-gray-700 hover:bg-yellow-700{% endif %} {% if asistencia_bloqueada %}opacity-50 cursor-not-allowed{% endif %}"
-                                        onclick="{% if not asistencia_bloqueada %}seleccionarEstado({{ alumno.id }}, 'Retirado', this){% endif %}"
-                                        {% if asistencia_bloqueada %}disabled{% endif %}>
-                                    <span class="text-white text-xl">→</span>
-                                </button>
-                                <input type="radio" name="estado_{{ alumno.id }}" value="Retirado" 
-                                       class="hidden estado-input-{{ alumno.id }}" 
-                                       {% if estado == 'Retirado' %}checked{% endif %}
-                                       {% if asistencia_bloqueada %}disabled{% endif %}>
-                            </td>
-                            
-                            <td class="px-4 py-3 text-center">
-                                <span class="text-sm {% if estado == 'Presente' %}text-green-400{% elif estado == 'Ausente' %}text-red-400{% elif estado == 'Retirado' %}text-yellow-400{% else %}text-gray-400{% endif %}">
-                                    {% if estado %}{{ estado }}{% else %}Sin marcar{% endif %}
-                                </span>
-                            </td>
-                        </tr>
-                        {% endwith %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+<!-- ✅ FORMULARIO DE ASISTENCIA -->
+<form method="POST" class="bg-gray-800 rounded-lg shadow-xl p-6">
+    {% csrf_token %}
+    
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="bg-blue-900 text-white">
+                    <th class="px-4 py-3 text-left">Alumno</th>
+                    <th class="px-4 py-3 text-center">Presente</th>
+                    <th class="px-4 py-3 text-center">Ausente</th>
+                    <th class="px-4 py-3 text-center">Retirado</th>
+                    <th class="px-4 py-3 text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alumno in alumnos %}
+                    {% with estado=estado_actual|get_item:alumno.id %}
+                    <tr class="border-b border-gray-700 hover:bg-gray-700 transition">
+                        <td class="px-4 py-3 text-white">{{ alumno.usuario.nombre }}</td>
+                        
+                        <!-- Presente -->
+                        <td class="px-4 py-3 text-center">
+                            <button type="button" 
+                                    class="w-10 h-10 rounded-lg transition {% if estado == 'Presente' %}bg-green-600{% else %}bg-gray-700 hover:bg-green-700{% endif %} {% if asistencia_bloqueada %}opacity-50 cursor-not-allowed{% endif %}"
+                                    onclick="{% if not asistencia_bloqueada %}seleccionarEstado({{ alumno.id }}, 'Presente', this){% endif %}"
+                                    {% if asistencia_bloqueada %}disabled{% endif %}>
+                                <span class="text-white text-xl">✓</span>
+                            </button>
+                        </td>
+                        
+                        <!-- Ausente -->
+                        <td class="px-4 py-3 text-center">
+                            <button type="button" 
+                                    class="w-10 h-10 rounded-lg transition {% if estado == 'Ausente' %}bg-red-600{% else %}bg-gray-700 hover:bg-red-700{% endif %} {% if asistencia_bloqueada %}opacity-50 cursor-not-allowed{% endif %}"
+                                    onclick="{% if not asistencia_bloqueada %}seleccionarEstado({{ alumno.id }}, 'Ausente', this){% endif %}"
+                                    {% if asistencia_bloqueada %}disabled{% endif %}>
+                                <span class="text-white text-xl">✗</span>
+                            </button>
+                        </td>
+                        
+                        <!-- Retirado -->
+                        <td class="px-4 py-3 text-center">
+                            <button type="button" 
+                                    class="w-10 h-10 rounded-lg transition {% if estado == 'Retirado' %}bg-yellow-600{% else %}bg-gray-700 hover:bg-yellow-700{% endif %} {% if asistencia_bloqueada %}opacity-50 cursor-not-allowed{% endif %}"
+                                    onclick="{% if not asistencia_bloqueada %}seleccionarEstado({{ alumno.id }}, 'Retirado', this){% endif %}"
+                                    {% if asistencia_bloqueada %}disabled{% endif %}>
+                                <span class="text-white text-xl">→</span>
+                            </button>
+                        </td>
 
-        <div class="mt-6 flex justify-between items-center">
-            <p class="text-gray-400">
-                Total de alumnos: <span class="font-bold text-white">{{ alumnos.count }}</span>
-            </p>
+                        <!-- Input hidden que guarda el estado -->
+                        <input type="hidden" name="estado_{{ alumno.id }}" id="estado-input-{{ alumno.id }}" value="{{ estado }}">
+
+                        <td class="px-4 py-3 text-center">
+                            <span class="text-sm {% if estado == 'Presente' %}text-green-400{% elif estado == 'Ausente' %}text-red-400{% elif estado == 'Retirado' %}text-yellow-400{% else %}text-gray-400{% endif %}">
+                                {% if estado %}{{ estado }}{% else %}Sin marcar{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endwith %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-6 flex justify-between items-center">
+        <p class="text-gray-400">
+            Total de alumnos: <span class="font-bold text-white">{{ alumnos.count }}</span>
+        </p>
+        
+        <div class="flex gap-4">
+            <a href="{% url 'seleccionar_curso' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition">
+                Cancelar
+            </a>
             
-            <div class="flex gap-4">
-                <a href="{% url 'seleccionar_curso' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition">
-                    Cancelar
-                </a>
-                
-                {% if puede_ver_boton_bloquear %}
-                    <button type="submit" name="accion" value="bloquear" 
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg"
-                            onclick="return confirm('¿Confirmar el marcaje de asistencia? Una vez guardado, quedará bloqueado.');">
-                        🔒 Bloqueado
-                    </button>
-                {% endif %}
-            </div>
+            {% if puede_ver_boton_bloquear %}
+                <button type="submit" name="accion" value="bloquear" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold transition shadow-lg"
+                        onclick="return confirm('¿Confirmar el marcaje de asistencia? Una vez guardado, quedará bloqueado.');">
+                    🔒 Bloqueado
+                </button>
+            {% endif %}
         </div>
-    </form>
+    </div>
+</form>
+
 
     <!-- ℹ️ INFORMACIÓN DE PERMISOS -->
     <div class="mt-6 bg-gray-800 rounded-lg p-4">
@@ -188,30 +180,21 @@
 
 <script>
 function seleccionarEstado(alumnoId, estado, boton) {
-    // Obtener todos los inputs del alumno
-    const inputs = document.querySelectorAll('.estado-input-' + alumnoId);
-    
-    // Desmarcar todos
-    inputs.forEach(input => {
-        input.checked = false;
-    });
-    
-    // Marcar el seleccionado
-    const inputSeleccionado = document.querySelector(`input[name="estado_${alumnoId}"][value="${estado}"]`);
-    if (inputSeleccionado) {
-        inputSeleccionado.checked = true;
+    // Actualizar el input hidden
+    const input = document.getElementById('estado-input-' + alumnoId);
+    if (input) {
+        input.value = estado;
     }
-    
+
     // Actualizar estilos de botones
     const fila = boton.closest('tr');
     const botones = fila.querySelectorAll('button[type="button"]');
-    
+
     botones.forEach(btn => {
         btn.classList.remove('bg-green-600', 'bg-red-600', 'bg-yellow-600');
         btn.classList.add('bg-gray-700');
     });
-    
-    // Aplicar estilo al botón seleccionado
+
     if (estado === 'Presente') {
         boton.classList.remove('bg-gray-700');
         boton.classList.add('bg-green-600');
@@ -224,4 +207,5 @@ function seleccionarEstado(alumnoId, estado, boton) {
     }
 }
 </script>
+
 {% endblock %}
