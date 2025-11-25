@@ -360,7 +360,16 @@
                 <a href="{% url 'logout' %}" class="logout-btn">Cerrar Sesión</a>
             </div>
         </div>
-
+        <!-- Acciones Rápidas -->
+        <div class="dashboard-section">
+            <h2 class="section-title">⚡ Acciones Rápidas</h2>
+            <div class="quick-actions">
+                <a href="{% url 'generar_reporte_diario' %}" class="action-btn">📊 Reporte Diario</a>
+                <a href="{% url 'reporte_mensual' %}" class="action-btn">📈 Reporte Mensual</a>
+                <a href="{% url 'monitorear_marcaje' %}" class="action-btn">👁️ Monitorear</a>
+                <a href="{% url 'seleccionar_curso' %}" class="action-btn">✏️ Modificar Asistencia</a>
+            </div>
+        </div>
         <!-- Estadísticas Generales -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -387,7 +396,18 @@
                 <div class="stat-label">Cursos</div>
             </div>
         </div>
-
+        <!-- NUEVA SECCIÓN: Gestión de Personal (BOTÓN PRINCIPAL) -->
+        <div class="dashboard-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                <div>
+                    <h2 style="color: white; font-size: 26px; margin-bottom: 10px;">👥 Gestión de Personal</h2>
+                    <p style="opacity: 0.9; font-size: 16px;">Administra inspectores, apoderados y alumnos desde un solo lugar</p>
+                </div>
+                <a href="{% url 'gestion_completa_director' %}" class="action-btn" style="background: white; color: #667eea; font-size: 18px; padding: 20px 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.3);">
+                    ⚙️ Ir a Gestión Completa
+                </a>
+            </div>
+        </div>
         <!-- Asistencia Hoy -->
         <div class="dashboard-section">
             <h2 class="section-title">📊 Asistencia de Hoy</h2>

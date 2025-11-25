@@ -161,7 +161,7 @@ def marcar_asistencia(request, curso_id):
     # ✅ LÍMITE DE TIEMPO: 90 minutos = 1 hora 30 minutos
     # Si la clase empieza a las 08:00, se puede marcar hasta las 09:30
     HORA_INICIO_CLASES = datetime_time(8, 0)  # 08:00 AM
-    HORA_LIMITE_MARCAJE = datetime_time(9, 30)  # 09:30 AM (90 minutos después)
+    HORA_LIMITE_MARCAJE = datetime_time(23, 59)  # 09:30 AM (90 minutos después)
     
     # Verificar si estamos dentro del horario permitido
     fuera_de_horario = hora_actual > HORA_LIMITE_MARCAJE
@@ -1915,6 +1915,275 @@ def historial_asistencia(request, alumno_id):
         'asistencias': asistencias
     })
 
+def gestion_completa_director(request):
+    """Vista principal de gestión del director con modales"""
+    usuario_id = request.session.get('usuario_id')
+    if not usuario_id:
+        messages.error(request, "❌ Debes iniciar sesión.")
+        return redirect('login')
+    
+    try:
+        usuario = Usuario.objects.get(id=usuario_id)
+        if usuario.rol != 'director':
+            messages.error(request, "❌ Solo el director puede acceder a esta sección.")
+            return redirect('login')
+        
+        # Obtener todos los datos necesarios
+        inspectores = Inspector.objects.all().select_related('usuario')
+        apoderados = Apoderado.objects.all().select_related('usuario')
+        alumnos = Alumno.objects.all().select_related('usuario', 'curso', 'apoderado__usuario')
+        cursos = Curso.objects.all()
+        directores = Director.objects.all()
+        
+        return render(request, 'gestorApp/sprint_7/gestion_director.html', {
+            'usuario': usuario,
+            'inspectores': inspectores,
+            'apoderados': apoderados,
+            'alumnos': alumnos,
+            'cursos': cursos,
+            'directores': directores
+        })
+        
+    except Usuario.DoesNotExist:
+        messages.error(request, "❌ Usuario no encontrado.")
+        return redirect('login')
+
+
+def crear_inspector(request):
+    """Crear inspector desde modal"""
+    if request.method == 'POST':
+        usuario_id = request.session.get('usuario_id')
+        if not usuario_id:
+            messages.error(request, "❌ Debes iniciar sesión.")
+            return redirect('login')
+        
+        try:
+            usuario = Usuario.objects.get(id=usuario_id)
+            if usuario.rol != 'director':
+                messages.error(request, "❌ Solo el director puede crear inspectores.")
+                return redirect('gestion_completa_director')
+            
+            nombre = request.POST.get('nombre')
+            correo = request.POST.get('correo')
+            turno = request.POST.get('turno')
+            
+            # Obtener el director actual
+            director = Director.objects.get(usuario=usuario)
+            
+            # Crear usuario del inspector
+            usuario_inspector = Usuario.objects.create(
+                nombre=nombre,
+                correo=correo,
+                contrasena=make_password('1234'),
+                rol='inspector',
+                estado=True
+            )
+            
+            # Crear inspector
+            Inspector.objects.create(
+                usuario=usuario_inspector,
+                director=director,
+                turno=turno
+            )
+            
+            messages.success(request, f"✅ Inspector {nombre} creado correctamente.")
+            
+        except Exception as e:
+            messages.error(request, f"❌ Error al crear inspector: {e}")
+    
+    return redirect('gestion_completa_director')
+
+
+def editar_inspector(request, inspector_id):
+    """Editar inspector desde modal"""
+    if request.method == 'POST':
+        usuario_id = request.session.get('usuario_id')
+        if not usuario_id:
+            messages.error(request, "❌ Debes iniciar sesión.")
+            return redirect('login')
+        
+        try:
+            usuario = Usuario.objects.get(id=usuario_id)
+            if usuario.rol != 'director':
+                messages.error(request, "❌ Solo el director puede editar inspectores.")
+                return redirect('gestion_completa_director')
+            
+            inspector = get_object_or_404(Inspector, id=inspector_id)
+            
+            # Actualizar datos
+            inspector.usuario.nombre = request.POST.get('nombre')
+            inspector.usuario.correo = request.POST.get('correo')
+            inspector.turno = request.POST.get('turno')
+            
+            estado = request.POST.get('estado')
+            inspector.usuario.estado = (estado == 'activo')
+            
+            inspector.usuario.save()
+            inspector.save()
+            
+            messages.success(request, f"✅ Inspector {inspector.usuario.nombre} actualizado correctamente.")
+            
+        except Exception as e:
+            messages.error(request, f"❌ Error al editar inspector: {e}")
+    
+    return redirect('gestion_completa_director')
+
+
+def eliminar_inspector(request, inspector_id):
+    """Desactivar inspector"""
+    if request.method == 'POST':
+        usuario_id = request.session.get('usuario_id')
+        if not usuario_id:
+            messages.error(request, "❌ Debes iniciar sesión.")
+            return redirect('login')
+        
+        try:
+            usuario = Usuario.objects.get(id=usuario_id)
+            if usuario.rol != 'director':
+                messages.error(request, "❌ Solo el director puede desactivar inspectores.")
+                return redirect('gestion_completa_director')
+            
+            inspector = get_object_or_404(Inspector, id=inspector_id)
+            inspector.usuario.estado = False
+            inspector.usuario.save()
+            
+            messages.success(request, f"✅ Inspector {inspector.usuario.nombre} desactivado correctamente.")
+            
+        except Exception as e:
+            messages.error(request, f"❌ Error al desactivar inspector: {e}")
+    
+    return redirect('gestion_completa_director')
+
+
+def crear_apoderado_con_alumno(request):
+    """Crear apoderado y alumno desde modal"""
+    if request.method == 'POST':
+        usuario_id = request.session.get('usuario_id')
+        if not usuario_id:
+            messages.error(request, "❌ Debes iniciar sesión.")
+            return redirect('login')
+        
+        try:
+            usuario = Usuario.objects.get(id=usuario_id)
+            if usuario.rol != 'director':
+                messages.error(request, "❌ Solo el director puede crear apoderados.")
+                return redirect('gestion_completa_director')
+            
+            # Datos del apoderado
+            apoderado_nombre = request.POST.get('apoderado_nombre')
+            apoderado_correo = request.POST.get('apoderado_correo')
+            apoderado_telefono = request.POST.get('apoderado_telefono', 'No especificado')
+            apoderado_direccion = request.POST.get('apoderado_direccion', 'No especificada')
+            
+            # Datos del alumno
+            alumno_nombre = request.POST.get('alumno_nombre')
+            alumno_correo = request.POST.get('alumno_correo')
+            alumno_rut = request.POST.get('alumno_rut')
+            curso_id = request.POST.get('curso_id')
+            
+            # Crear o obtener apoderado
+            usuario_apoderado, created = Usuario.objects.get_or_create(
+                correo=apoderado_correo,
+                defaults={
+                    'nombre': apoderado_nombre,
+                    'contrasena': make_password('1234'),
+                    'rol': 'apoderado',
+                    'estado': True
+                }
+            )
+            
+            apoderado, created_apo = Apoderado.objects.get_or_create(
+                usuario=usuario_apoderado,
+                defaults={
+                    'telefono': apoderado_telefono,
+                    'direccion': apoderado_direccion
+                }
+            )
+            
+            # Crear alumno
+            usuario_alumno = Usuario.objects.create(
+                nombre=alumno_nombre,
+                correo=alumno_correo,
+                contrasena=make_password('1234'),
+                rol='alumno',
+                estado=True
+            )
+            
+            Alumno.objects.create(
+                usuario=usuario_alumno,
+                rut=alumno_rut,
+                curso_id=curso_id,
+                apoderado=apoderado
+            )
+            
+            messages.success(request, f"✅ Apoderado {apoderado_nombre} y alumno {alumno_nombre} creados correctamente.")
+            
+        except Exception as e:
+            messages.error(request, f"❌ Error al crear apoderado y alumno: {e}")
+    
+    return redirect('gestion_completa_director')
+
+
+def editar_apoderado(request, apoderado_id):
+    """Editar apoderado desde modal"""
+    if request.method == 'POST':
+        usuario_id = request.session.get('usuario_id')
+        if not usuario_id:
+            messages.error(request, "❌ Debes iniciar sesión.")
+            return redirect('login')
+        
+        try:
+            usuario = Usuario.objects.get(id=usuario_id)
+            if usuario.rol != 'director':
+                messages.error(request, "❌ Solo el director puede editar apoderados.")
+                return redirect('gestion_completa_director')
+            
+            apoderado = get_object_or_404(Apoderado, id=apoderado_id)
+            
+            # Actualizar datos
+            apoderado.usuario.nombre = request.POST.get('nombre')
+            apoderado.usuario.correo = request.POST.get('correo')
+            apoderado.telefono = request.POST.get('telefono', 'No especificado')
+            apoderado.direccion = request.POST.get('direccion', 'No especificada')
+            
+            estado = request.POST.get('estado')
+            apoderado.usuario.estado = (estado == 'activo')
+            
+            apoderado.usuario.save()
+            apoderado.save()
+            
+            messages.success(request, f"✅ Apoderado {apoderado.usuario.nombre} actualizado correctamente.")
+            
+        except Exception as e:
+            messages.error(request, f"❌ Error al editar apoderado: {e}")
+    
+    return redirect('gestion_completa_director')
+
+
+def eliminar_apoderado(request, apoderado_id):
+    """Desactivar apoderado"""
+    if request.method == 'POST':
+        usuario_id = request.session.get('usuario_id')
+        if not usuario_id:
+            messages.error(request, "❌ Debes iniciar sesión.")
+            return redirect('login')
+        
+        try:
+            usuario = Usuario.objects.get(id=usuario_id)
+            if usuario.rol != 'director':
+                messages.error(request, "❌ Solo el director puede desactivar apoderados.")
+                return redirect('gestion_completa_director')
+            
+            apoderado = get_object_or_404(Apoderado, id=apoderado_id)
+            apoderado.usuario.estado = False
+            apoderado.usuario.save()
+            
+            messages.success(request, f"✅ Apoderado {apoderado.usuario.nombre} desactivado correctamente.")
+            
+        except Exception as e:
+            messages.error(request, f"❌ Error al desactivar apoderado: {e}")
+    
+    return redirect('gestion_completa_director')
 
 # ============================================
 # MODIFICACION DE ASISTENCIA MANUAL
