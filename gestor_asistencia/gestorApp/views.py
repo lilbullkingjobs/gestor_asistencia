@@ -181,6 +181,7 @@ def marcar_asistencia(request, curso_id):
             usuario_actual = Usuario.objects.get(id=usuario_id)
             es_inspector = usuario_actual.rol == 'inspector'
             es_profesor = usuario_actual.rol == 'profesor'
+            es_director = usuario_actual.rol == 'director'
         except Usuario.DoesNotExist:
             pass
 
@@ -208,10 +209,10 @@ def marcar_asistencia(request, curso_id):
         
         # BLOQUEO: Profesores e inspectores pueden bloquear (guardar asistencia)
         if accion == 'bloquear':
-            # Verificar permisos
-            if not (es_profesor or es_inspector):
+            if not (es_profesor or es_inspector or es_director):
                 messages.error(request, "❌ No tienes permiso para marcar asistencia.")
                 return redirect('marcar_asistencia', curso_id=curso.id)
+
             
             # ✅ VERIFICAR LÍMITE DE TIEMPO (solo para profesores)
             if es_profesor and fuera_de_horario and not asistencia_bloqueada:
@@ -292,9 +293,10 @@ def marcar_asistencia(request, curso_id):
             }
 
     # Determinar permisos del usuario actual
-    puede_marcar = (es_profesor or es_inspector) and not asistencia_bloqueada and not (es_profesor and fuera_de_horario)
-    puede_desbloquear = es_inspector and asistencia_bloqueada
-    puede_ver_boton_bloquear = (es_profesor or es_inspector) and not asistencia_bloqueada and not (es_profesor and fuera_de_horario)
+    puede_marcar = (es_profesor or es_inspector or es_director) and not asistencia_bloqueada and not (es_profesor and fuera_de_horario)
+    puede_desbloquear = (es_inspector or es_director) and asistencia_bloqueada
+    puede_ver_boton_bloquear = (es_profesor or es_inspector or es_director) and not asistencia_bloqueada and not (es_profesor and fuera_de_horario)
+
 
     return render(request, 'gestorApp/sprint_2/marcar_asistencia.html', {
         'curso': curso,
@@ -2182,3 +2184,8 @@ def eliminar_apoderado(request, apoderado_id):
             messages.error(request, f"❌ Error al desactivar apoderado: {e}")
     
     return redirect('gestion_completa_director')
+
+# ============================================
+# MODIFICACION DE ASISTENCIA MANUAL
+# ============================================
+

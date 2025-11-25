@@ -388,3 +388,4 @@ def historial_asistencia(request, alumno_id):
         'alumno': alumno,
         'asistencias': asistencias
     })
+

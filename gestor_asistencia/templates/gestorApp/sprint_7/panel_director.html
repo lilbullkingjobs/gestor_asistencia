@@ -494,6 +494,16 @@
             </div>
             {% endif %}
         </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="dashboard-section">
+            <h2 class="section-title">⚡ Acciones Rápidas</h2>
+            <div class="quick-actions">
+                <a href="{% url 'generar_reporte_diario' %}" class="action-btn">📊 Reporte Diario</a>
+                <a href="{% url 'reporte_mensual' %}" class="action-btn">📈 Reporte Mensual</a>
+                <a href="{% url 'monitorear_marcaje' %}" class="action-btn">👁️ Monitorear</a>
+                <a href="{% url 'seleccionar_curso' %}" class="action-btn">✏️ Modificar Asistencia</a> 
+        </div>
     </div>
 </body>
 </html>
