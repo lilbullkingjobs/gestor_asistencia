@@ -58,10 +58,25 @@ urlpatterns = [
     # ============================================#
     path('modificar-asistencia-manual/', views.modificar_asistencia_manual, name='modificar_asistencia_manual'),
     path('panel-control/', views.panel_control_rol, name='panel_control_rol'),
+    path('gestion-completa-director/', views.gestion_completa_director, name='gestion_completa_director'),  # ✅ NUEVA
     
     # ============================================#
     # SPRINT 8: Exportación y Auditoría
     # ============================================#
     path('exportar-reporte/', views.exportar_reporte, name='exportar_reporte'),
     path('registro-auditoria/', views.registro_auditoria, name='registro_auditoria'),
+
+
+    # Gestión completa del director con modales
+    path('gestion-completa-director/', views.gestion_completa_director, name='gestion_completa_director'),
+
+    # Inspectores
+    path('director/inspectores/crear/', views.crear_inspector, name='crear_inspector'),
+    path('director/inspectores/editar/<int:inspector_id>/', views.editar_inspector, name='editar_inspector'),
+    path('director/inspectores/eliminar/<int:inspector_id>/', views.eliminar_inspector, name='eliminar_inspector'),
+
+    # Apoderados
+    path('director/apoderados/crear/', views.crear_apoderado_con_alumno, name='crear_apoderado_con_alumno'),
+    path('director/apoderados/editar/<int:apoderado_id>/', views.editar_apoderado, name='editar_apoderado'),
+    path('director/apoderados/eliminar/<int:apoderado_id>/', views.eliminar_apoderado, name='eliminar_apoderado'),
 ]

@@ -1,0 +1,803 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión Completa - Director</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: #f8f9fa;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn:hover {
+            background: #e9ecef;
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.5);
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .badge-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 20px;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            color: #667eea;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .required {
+            color: #dc3545;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        .messages {
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 60px 20px;
+            font-size: 18px;
+        }
+        
+        .empty-state::before {
+            content: "📋";
+            display: block;
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s ease;
+            display: inline-block;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .tabs {
+                justify-content: center;
+            }
+            
+            .section-header {
+                flex-direction: column;
+            }
+            
+            table {
+                font-size: 14px;
+            }
+            
+            td, th {
+                padding: 10px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>👥 Gestión de Personal - Director</h1>
+            <a href="{% url 'panel_control_rol' %}" class="logout-btn">← Volver al Panel</a>
+        </div>
+
+        <!-- Mensajes -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {% if 'success' in message.tags %}✅{% elif 'error' in message.tags %}❌{% else %}⚠️{% endif %}
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('inspectores')">🔍 Inspectores</button>
+            <button class="tab-btn" onclick="openTab('apoderados')">👨‍👩‍👦 Apoderados</button>
+        </div>
+
+        <!-- TAB: INSPECTORES -->
+        <div id="inspectores" class="tab-content active">
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Gestión de Inspectores</h2>
+                    <button class="btn btn-primary" onclick="openModal('crearInspector')">➕ Crear Inspector</button>
+                </div>
+
+                {% if inspectores %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Turno</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inspector in inspectores %}
+                        <tr>
+                            <td><strong>{{ inspector.usuario.nombre }}</strong></td>
+                            <td>{{ inspector.usuario.correo }}</td>
+                            <td>{{ inspector.turno }}</td>
+                            <td>
+                                {% if inspector.usuario.estado %}
+                                <span class="badge badge-success">Activo</span>
+                                {% else %}
+                                <span class="badge badge-danger">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-warning" onclick="editarInspector({{ inspector.id }}, '{{ inspector.usuario.nombre }}', '{{ inspector.usuario.correo }}', '{{ inspector.turno }}', {{ inspector.usuario.estado|yesno:'true,false' }})">✏️ Editar</button>
+                                    {% if inspector.usuario.estado %}
+                                    <button class="btn btn-danger" onclick="confirmarEliminar('inspector', {{ inspector.id }}, '{{ inspector.usuario.nombre }}')">🗑️ Desactivar</button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">No hay inspectores registrados</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- TAB: APODERADOS -->
+        <div id="apoderados" class="tab-content">
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Gestión de Apoderados</h2>
+                    <button class="btn btn-primary" onclick="openModal('crearApoderado')">➕ Crear Apoderado + Alumno</button>
+                </div>
+
+                {% if apoderados %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Alumnos</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for apoderado in apoderados %}
+                        <tr>
+                            <td><strong>{{ apoderado.usuario.nombre }}</strong></td>
+                            <td>{{ apoderado.usuario.correo }}</td>
+                            <td>{{ apoderado.telefono|default:"No especificado" }}</td>
+                            <td>{{ apoderado.alumno_set.count }}</td>
+                            <td>
+                                {% if apoderado.usuario.estado %}
+                                <span class="badge badge-success">Activo</span>
+                                {% else %}
+                                <span class="badge badge-danger">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-warning" onclick="editarApoderado({{ apoderado.id }}, '{{ apoderado.usuario.nombre }}', '{{ apoderado.usuario.correo }}', '{{ apoderado.telefono }}', '{{ apoderado.direccion }}', {{ apoderado.usuario.estado|yesno:'true,false' }})">✏️ Editar</button>
+                                    {% if apoderado.usuario.estado %}
+                                    <button class="btn btn-danger" onclick="confirmarEliminar('apoderado', {{ apoderado.id }}, '{{ apoderado.usuario.nombre }}')">🗑️ Desactivar</button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">No hay apoderados registrados</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- TAB: ALUMNOS -->
+        <div id="alumnos" class="tab-content">
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Gestión de Alumnos</h2>
+                    <a href="{% url 'registro_alumno' %}" class="btn btn-primary">➕ Registrar Alumno</a>
+                </div>
+                <p style="text-align: center; color: #666; padding: 40px;">
+                    Usa el botón "Registrar Alumno" para agregar nuevos estudiantes al sistema.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CREAR INSPECTOR -->
+    <div id="crearInspector" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeModal('crearInspector')">&times;</span>
+                <h2 class="modal-title">➕ Crear Inspector</h2>
+            </div>
+            <form method="POST" action="{% url 'crear_inspector' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Nombre Completo <span class="required">*</span></label>
+                    <input type="text" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico <span class="required">*</span></label>
+                    <input type="email" name="correo" required>
+                </div>
+                <div class="form-group">
+                    <label>Turno <span class="required">*</span></label>
+                    <select name="turno" required>
+                        <option value="">Seleccione...</option>
+                        <option value="Mañana">Mañana</option>
+                        <option value="Tarde">Tarde</option>
+                        <option value="Completo">Completo</option>
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">✅ Crear</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('crearInspector')">❌ Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: EDITAR INSPECTOR -->
+    <div id="editarInspector" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeModal('editarInspector')">&times;</span>
+                <h2 class="modal-title">✏️ Editar Inspector</h2>
+            </div>
+            <form method="POST" id="formEditarInspector">
+                {% csrf_token %}
+                <input type="hidden" name="inspector_id" id="edit_inspector_id">
+                <div class="form-group">
+                    <label>Nombre Completo <span class="required">*</span></label>
+                    <input type="text" name="nombre" id="edit_nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico <span class="required">*</span></label>
+                    <input type="email" name="correo" id="edit_correo" required>
+                </div>
+                <div class="form-group">
+                    <label>Turno <span class="required">*</span></label>
+                    <select name="turno" id="edit_turno" required>
+                        <option value="Mañana">Mañana</option>
+                        <option value="Tarde">Tarde</option>
+                        <option value="Completo">Completo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Estado <span class="required">*</span></label>
+                    <select name="estado" id="edit_estado" required>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">✅ Guardar</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editarInspector')">❌ Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CREAR APODERADO -->
+    <div id="crearApoderado" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeModal('crearApoderado')">&times;</span>
+                <h2 class="modal-title">➕ Crear Apoderado + Alumno</h2>
+            </div>
+            <form method="POST" action="{% url 'crear_apoderado_con_alumno' %}">
+                {% csrf_token %}
+                <h3 style="color: #667eea; margin-bottom: 15px;">👨‍👩‍👦 Datos del Apoderado</h3>
+                <div class="form-group">
+                    <label>Nombre Completo <span class="required">*</span></label>
+                    <input type="text" name="apoderado_nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico <span class="required">*</span></label>
+                    <input type="email" name="apoderado_correo" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" name="apoderado_telefono">
+                </div>
+                <div class="form-group">
+                    <label>Dirección</label>
+                    <input type="text" name="apoderado_direccion">
+                </div>
+                
+                <hr style="margin: 25px 0;">
+                
+                <h3 style="color: #667eea; margin-bottom: 15px;">👨‍🎓 Datos del Alumno</h3>
+                <div class="form-group">
+                    <label>Nombre Completo <span class="required">*</span></label>
+                    <input type="text" name="alumno_nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico <span class="required">*</span></label>
+                    <input type="email" name="alumno_correo" required>
+                </div>
+                <div class="form-group">
+                    <label>RUT <span class="required">*</span></label>
+                    <input type="text" name="alumno_rut" required placeholder="12345678-9">
+                </div>
+                <div class="form-group">
+                    <label>Curso <span class="required">*</span></label>
+                    <select name="curso_id" required>
+                        <option value="">Seleccione un curso...</option>
+                        {% for curso in cursos %}
+                        <option value="{{ curso.id }}">{{ curso.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">✅ Crear</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('crearApoderado')">❌ Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: EDITAR APODERADO -->
+    <div id="editarApoderado" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeModal('editarApoderado')">&times;</span>
+                <h2 class="modal-title">✏️ Editar Apoderado</h2>
+            </div>
+            <form method="POST" id="formEditarApoderado">
+                {% csrf_token %}
+                <input type="hidden" name="apoderado_id" id="edit_apoderado_id">
+                <div class="form-group">
+                    <label>Nombre Completo <span class="required">*</span></label>
+                    <input type="text" name="nombre" id="edit_apoderado_nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico <span class="required">*</span></label>
+                    <input type="email" name="correo" id="edit_apoderado_correo" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" name="telefono" id="edit_apoderado_telefono">
+                </div>
+                <div class="form-group">
+                    <label>Dirección</label>
+                    <input type="text" name="direccion" id="edit_apoderado_direccion">
+                </div>
+                <div class="form-group">
+                    <label>Estado <span class="required">*</span></label>
+                    <select name="estado" id="edit_apoderado_estado" required>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">✅ Guardar</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editarApoderado')">❌ Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAR ELIMINAR -->
+    <div id="confirmarEliminar" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <span class="close" onclick="cgestion-completaloseModal('confirmarEliminar')">&times;</span>
+                <h2 class="modal-title">⚠️ Confirmar Desactivación</h2>
+            </div>
+            <p id="mensajeEliminar" style="margin-bottom: 25px; font-size: 16px;"></p>
+            <form method="POST" id="formEliminar">
+                {% csrf_token %}
+                <div class="button-group">
+                    <button type="submit" class="btn btn-danger">🗑️ Sí, Desactivar</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('confirmarEliminar')">❌ Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Cambiar entre tabs
+        function openTab(tabName) {
+            const tabs = document.getElementsByClassName('tab-content');
+            const buttons = document.getElementsByClassName('tab-btn');
+            
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Abrir modal
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        // Cerrar modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Editar inspector
+        function editarInspector(id, nombre, correo, turno, estado) {
+            document.getElementById('edit_inspector_id').value = id;
+            document.getElementById('edit_nombre').value = nombre;
+            document.getElementById('edit_correo').value = correo;
+            document.getElementById('edit_turno').value = turno;
+            document.getElementById('edit_estado').value = estado ? 'activo' : 'inactivo';
+            document.getElementById('formEditarInspector').action = '/director/inspectores/editar/' + id + '/';
+            openModal('editarInspector');
+        }
+
+        // Editar apoderado
+        function editarApoderado(id, nombre, correo, telefono, direccion, estado) {
+            document.getElementById('edit_apoderado_id').value = id;
+            document.getElementById('edit_apoderado_nombre').value = nombre;
+            document.getElementById('edit_apoderado_correo').value = correo;
+            document.getElementById('edit_apoderado_telefono').value = telefono;
+            document.getElementById('edit_apoderado_direccion').value = direccion;
+            document.getElementById('edit_apoderado_estado').value = estado ? 'activo' : 'inactivo';
+            document.getElementById('formEditarApoderado').action = '/director/apoderados/editar/' + id + '/';
+            openModal('editarApoderado');
+        }
+
+        // Confirmar eliminar
+        function confirmarEliminar(tipo, id, nombre) {
+            const mensaje = `¿Está seguro de desactivar a <strong>${nombre}</strong>?`;
+            document.getElementById('mensajeEliminar').innerHTML = mensaje;
+            document.getElementById('formEliminar').action = `/director/${tipo}s/eliminar/${id}/`;
+            openModal('confirmarEliminar');
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
